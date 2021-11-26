@@ -62,5 +62,7 @@ export default defineComponent({
   /* border: solid thin black; */
   display: block;
   margin: auto;
+  background-color: black;
+  width: 80%;
 }
 </style>
