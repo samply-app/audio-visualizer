@@ -10,10 +10,7 @@ export default defineComponent({
     const canvas = ref<HTMLCanvasElement>();
     const audio = ref<HTMLAudioElement>();
 
-    const visualizer = useVisualizer(
-      helloworld,
-      // canvas
-    );
+    const visualizer = useVisualizer(helloworld, canvas);
 
     function attachAudio() {
       visualizer.attachAudio(audio.value as HTMLAudioElement);
@@ -34,7 +31,9 @@ export default defineComponent({
 <template>
   <div>
     <h1>Audio Visualizer</h1>
-    <canvas ref="canvas" id="primary-canvas" />
+    <div class="container">
+      <canvas ref="canvas" />
+    </div>
     <button @click="attachAudio">Attach Audio</button>
     <button @click="visualizer.start()">Start</button>
     <button @click="visualizer.toggleFullscreen()">Fullscreen</button>
@@ -58,11 +57,18 @@ export default defineComponent({
   margin-top: 60px;
 }
 
-#primary-canvas {
-  /* border: solid thin black; */
-  display: block;
-  margin: auto;
-  background-color: black;
-  width: 80%;
+.container {
+  position: relative;  
+  padding-top: 56.25%; /* 16:9 Aspect Ratio (divide 9 by 16 = 0.5625) */  
+}
+
+.container canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
 }
 </style>

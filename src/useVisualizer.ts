@@ -14,20 +14,29 @@ export interface Program {
   ) => void;
 }
 
-export function scaleCanvas(canvas: HTMLCanvasElement) {
-  // get current size of the canvas
-  const rect = canvas.getBoundingClientRect();
-  // increase the actual size of our canvas
-  canvas.width = rect.width * devicePixelRatio;
-  canvas.height = rect.height * devicePixelRatio;
+function updateCanvasContext(context: CanvasRenderingContext2D, opts: { clearFrame: boolean }) {
+  const canvas = context.canvas;
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+  if (opts.clearFrame) context.clearRect(0, 0, canvas.width, canvas.height);
+  return canvas;
+}
 
-  // scale everything down using CSS
-  canvas.style.width = rect.width + 'px';
-  canvas.style.height = rect.height + 'px';
-
-  return {
-    width: canvas.width,
-    height: canvas.height
+function launchIntoFullscreen(element: HTMLElement) {
+  if (element.requestFullscreen) {
+    element.requestFullscreen();
+    // @ts-ignore
+  } else if (element.mozRequestFullScreen) {
+    // @ts-ignore
+    element.mozRequestFullScreen();
+    // @ts-ignore
+  } else if (element.webkitRequestFullscreen) {
+    // @ts-ignore
+    element.webkitRequestFullscreen();
+    // @ts-ignore
+  } else if (element.msRequestFullscreen) {
+    // @ts-ignore
+    element.msRequestFullscreen();
   }
 }
 
@@ -51,7 +60,7 @@ export default function useVisualizer(
   let frameHandler: number;
   let timePrevious = getTime();
 
-  function main() {
+  function animate() {
     const timeNow = getTime();
     const deltaMilliseconds = timeNow - timePrevious;
     const deltaFrames = deltaMilliseconds / FRAME_DURATION;
@@ -59,13 +68,12 @@ export default function useVisualizer(
     // Update audio data
     audioAnalyzer.getByteFrequencyData(fftDataArray);
 
-    // ANIMATE START
-    if (!canvasContext) throw new Error('Failed to retrieve context')
+    if (!canvasContext) throw new Error('Failed to retrieve context');
+    updateCanvasContext(canvasContext, { clearFrame: true });
     program.frameHandler(canvasContext, deltaFrames, fftDataArray, audioAnalyzer.frequencyBinCount);
-    // ANIMATE END
 
     timePrevious = timeNow;
-    frameHandler = requestAnimationFrame(main)
+    frameHandler = requestAnimationFrame(animate)
   }
 
   /**
@@ -73,22 +81,14 @@ export default function useVisualizer(
    * Must be called after the `onMounted` hook fires.
    */
   function start() {
-    frameHandler = requestAnimationFrame(main);
+    frameHandler = requestAnimationFrame(animate);
   }
 
   function toggleFullscreen() {
-    if (_canvas?.value) {
-      throw new Error('Fullscreen for provided canvas not yet supported.')
-    }
-    if (canvas.requestFullscreen) canvas.requestFullscreen();
-    else {
-      console.warn('Fullscreen not supported yet for this browser.')
-    }
+    launchIntoFullscreen(canvas);
   }
 
   function onFullscreenChange() {
-    console.log('called');
-
     if (document.fullscreenElement) {
       canvas.hidden = false;
     } else {
