@@ -10,7 +10,7 @@ export default defineComponent({
     const canvas = ref<HTMLCanvasElement>();
     const audio = ref<HTMLAudioElement>();
 
-    const visualizer = useVisualizer(helloworld, canvas);
+    const visualizer = useVisualizer(helloworld);
 
     function attachAudio() {
       visualizer.attachAudio(audio.value as HTMLAudioElement);
@@ -58,8 +58,8 @@ export default defineComponent({
 }
 
 .container {
-  position: relative;  
-  padding-top: 56.25%; /* 16:9 Aspect Ratio (divide 9 by 16 = 0.5625) */  
+  position: relative;
+  padding-top: 56.25%; /* 16:9 Aspect Ratio (divide 9 by 16 = 0.5625) */
 }
 
 .container canvas {
@@ -70,5 +70,15 @@ export default defineComponent({
   right: 0;
   width: 100%;
   height: 100%;
+}
+
+:fullscreen {
+  display: block !important;
+}
+
+:-webkit-full-screen {
+  width: 100%;
+  height: 100%;
+  display: block !important;
 }
 </style>

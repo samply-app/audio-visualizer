@@ -14,7 +14,7 @@ export interface Program {
   ) => void;
 }
 
-function updateCanvasContext(context: CanvasRenderingContext2D, opts: { clearFrame: boolean }) {
+function updateCanvasContext(context: CanvasRenderingContext2D, opts: { clearFrame?: boolean }) {
   const canvas = context.canvas;
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
@@ -48,6 +48,8 @@ export default function useVisualizer(
   program: Program,
   _canvas?: Ref<HTMLCanvasElement | undefined>
 ) {
+
+  let isFullscreen = false;
 
   let canvas: HTMLCanvasElement;
   let canvasContext: CanvasRenderingContext2D;
@@ -88,14 +90,6 @@ export default function useVisualizer(
     launchIntoFullscreen(canvas);
   }
 
-  function onFullscreenChange() {
-    if (document.fullscreenElement) {
-      canvas.hidden = false;
-    } else {
-      canvas.hidden = true;
-    }
-  }
-
   function attachAudio(audio: HTMLAudioElement) {
     audioContext = new AudioContext();
     audioAnalyzer = audioContext.createAnalyser();
@@ -115,9 +109,8 @@ export default function useVisualizer(
     if (!_canvas?.value) {
       console.warn('Creating hidden canvas');
       canvas = document.createElement("canvas");
-      canvas.hidden = true;
+      canvas.style.display = 'none'; // hide the canvas
       document.body.appendChild(canvas);
-      canvas.addEventListener('fullscreenchange', onFullscreenChange)
     } else {
       canvas = _canvas.value
     }
@@ -126,7 +119,6 @@ export default function useVisualizer(
     if (!ctx) throw new Error('Failed to retrieve context from canvas.');
     canvasContext = ctx;
     canvasContext.scale(devicePixelRatio, devicePixelRatio); // ensure all drawing operations are scaled
-
   });
 
   onUnmounted(() => {
