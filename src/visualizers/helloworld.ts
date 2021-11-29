@@ -35,7 +35,7 @@ const helloworld: Program = {
     for (var i = 0; i < frequencyBinCount; i++) {
       barHeight = (fft[i] / 255) * height;
       context.fillStyle = `rgba(255,50,50, ${(barHeight / height)})`;
-      context.fillRect(x, height - barHeight, barWidth, (barHeight / 2));
+      context.fillRect(x, height - barHeight, barWidth, (barHeight/2));
       x += barWidth + 1;
     }
     drawOverlays(context, width, height);

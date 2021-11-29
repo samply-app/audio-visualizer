@@ -10,8 +10,12 @@ export default defineComponent({
     const canvas = ref<HTMLCanvasElement>();
     const audio = ref<HTMLAudioElement>();
 
-    const visualizer = useVisualizer(helloworld);
+    const visualizer = useVisualizer(helloworld, canvas);
 
+    navigator.mediaDevices.getUserMedia({audio: true})
+.then(stream => {
+  visualizer.attachMediaStream(stream);
+})
     function attachAudio() {
       visualizer.attachAudio(audio.value as HTMLAudioElement);
     }
@@ -70,6 +74,7 @@ export default defineComponent({
   right: 0;
   width: 100%;
   height: 100%;
+  background-color: black;
 }
 
 :fullscreen {

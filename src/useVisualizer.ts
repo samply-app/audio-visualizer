@@ -49,8 +49,6 @@ export default function useVisualizer(
   _canvas?: Ref<HTMLCanvasElement | undefined>
 ) {
 
-  let isFullscreen = false;
-
   let canvas: HTMLCanvasElement;
   let canvasContext: CanvasRenderingContext2D;
 
@@ -105,6 +103,21 @@ export default function useVisualizer(
     sourceNode.connect(audioContext.destination);
   }
 
+  function attachMediaStream(stream: MediaStream) {
+    audioContext = new AudioContext();
+    audioAnalyzer = audioContext.createAnalyser();
+    audioAnalyzer.smoothingTimeConstant = program.smoothingTimeConstant ?? 0.3;
+    audioAnalyzer.fftSize = program.fftSize ?? 2048;
+
+    fftDataArray = new Uint8Array(audioAnalyzer.frequencyBinCount);
+    audioAnalyzer.getByteFrequencyData(fftDataArray);
+
+    // Connect to audio node    
+    const sourceNode = audioContext.createMediaStreamSource(stream);
+    sourceNode.connect(audioAnalyzer);
+    sourceNode.connect(audioContext.destination);
+  }
+
   onMounted(() => {
     if (!_canvas?.value) {
       console.warn('Creating hidden canvas');
@@ -128,6 +141,7 @@ export default function useVisualizer(
   return {
     start,
     toggleFullscreen,
-    attachAudio
+    attachAudio,
+    attachMediaStream
   }
 }
