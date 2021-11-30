@@ -1,7 +1,7 @@
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, watch } from "vue";
 import useVisualizer from "./useVisualizer";
-import helloworld from "./visualizers/helloworld";
+import demo from "./visualizers/demo";
 
 export default defineComponent({
   setup() {
@@ -10,22 +10,52 @@ export default defineComponent({
     const canvas = ref<HTMLCanvasElement>();
     const audio = ref<HTMLAudioElement>();
 
-    const visualizer = useVisualizer(helloworld, canvas);
+    const visualizer = useVisualizer(demo, canvas);
 
-    navigator.mediaDevices.getUserMedia({audio: true})
-.then(stream => {
-  visualizer.attachMediaStream(stream);
-})
-    function attachAudio() {
-      visualizer.attachAudio(audio.value as HTMLAudioElement);
+    const selectedDevice = ref("");
+    watch(selectedDevice, (value, prev) => {
+      if (value === prev) return;
+      console.log("Changing input device", value);
+      getAudioInput();
+    });
+
+    const audioInputDevices= ref<MediaDeviceInfo[]>([]);
+    navigator.mediaDevices.enumerateDevices().then((devices) => {
+      devices.forEach((device) => {
+        if (device.kind === "audioinput") {
+          audioInputDevices.value.push(device);
+          console.log(device.kind, device.label, device.deviceId);
+        }
+      });
+    });
+
+    let audioContext: AudioContext;
+    function getAudioInput() {
+      console.log(selectedDevice.value);
+      if (audioContext) audioContext.close();
+      navigator.mediaDevices
+        .getUserMedia({ audio: { deviceId: selectedDevice.value } })
+        .then((stream) => {
+          audioContext = new AudioContext();
+          const streamNode = audioContext.createMediaStreamSource(stream);
+          visualizer.connect(streamNode);
+          visualizer.start();
+        });
     }
+
+    getAudioInput();
+
+    // function attachAudio() {
+    //   visualizer.attachAudio(audio.value as HTMLAudioElement);
+    // }
 
     return {
       audioSource,
       canvas,
       audio,
       visualizer,
-      attachAudio,
+      audioInputDevices,
+      selectedDevice,
     };
   },
 });
@@ -34,11 +64,9 @@ export default defineComponent({
 
 <template>
   <div>
-    <h1>Audio Visualizer</h1>
     <div class="container">
       <canvas ref="canvas" />
     </div>
-    <button @click="attachAudio">Attach Audio</button>
     <button @click="visualizer.start()">Start</button>
     <button @click="visualizer.toggleFullscreen()">Fullscreen</button>
     <audio
@@ -48,6 +76,15 @@ export default defineComponent({
       :src="audioSource"
       style="display: block; margin: auto"
     />
+    <select name="pets" id="pet-select" v-model="selectedDevice">
+      <option
+        v-for="device in audioInputDevices"
+        :key="device.deviceId"
+        :value="device.deviceId"
+      >
+        {{ device.label }}
+      </option>
+    </select>
   </div>
 </template>
 
@@ -58,7 +95,10 @@ export default defineComponent({
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+}
+
+body {
+  margin: 0;
 }
 
 .container {
@@ -79,11 +119,13 @@ export default defineComponent({
 
 :fullscreen {
   display: block !important;
+  cursor: none;
 }
 
 :-webkit-full-screen {
   width: 100%;
   height: 100%;
   display: block !important;
+  cursor: none;
 }
 </style>

@@ -9,8 +9,8 @@ export interface Program {
   frameHandler: (
     context: CanvasRenderingContext2D,
     delta: number,
-    fft: Uint8Array,
-    frequencyBinCount: number
+    frequency: Uint8Array,
+    time: Uint8Array,
   ) => void;
 }
 
@@ -52,9 +52,10 @@ export default function useVisualizer(
   let canvas: HTMLCanvasElement;
   let canvasContext: CanvasRenderingContext2D;
 
-  let audioContext: AudioContext;
+  let audioContext: BaseAudioContext;
   let audioAnalyzer: AnalyserNode;
-  let fftDataArray: Uint8Array;
+  let frequencyDataArray: Uint8Array;
+  let timeDataArray: Uint8Array;
 
 
   let frameHandler: number;
@@ -66,11 +67,12 @@ export default function useVisualizer(
     const deltaFrames = deltaMilliseconds / FRAME_DURATION;
 
     // Update audio data
-    audioAnalyzer.getByteFrequencyData(fftDataArray);
+    audioAnalyzer.getByteFrequencyData(frequencyDataArray);
+    audioAnalyzer.getByteTimeDomainData(timeDataArray);
 
     if (!canvasContext) throw new Error('Failed to retrieve context');
     updateCanvasContext(canvasContext, { clearFrame: true });
-    program.frameHandler(canvasContext, deltaFrames, fftDataArray, audioAnalyzer.frequencyBinCount);
+    program.frameHandler(canvasContext, deltaFrames, frequencyDataArray, timeDataArray);
 
     timePrevious = timeNow;
     frameHandler = requestAnimationFrame(animate)
@@ -88,35 +90,41 @@ export default function useVisualizer(
     launchIntoFullscreen(canvas);
   }
 
-  function attachAudio(audio: HTMLAudioElement) {
-    audioContext = new AudioContext();
+  // function attachAudio(audio: HTMLAudioElement) {
+  //   audioContext = new AudioContext();
+  //   audioAnalyzer = audioContext.createAnalyser();
+  //   audioAnalyzer.smoothingTimeConstant = program.smoothingTimeConstant ?? 0.3;
+  //   audioAnalyzer.fftSize = program.fftSize ?? 2048;
+
+  //   frequencyDataArray = new Uint8Array(audioAnalyzer.frequencyBinCount);
+  //   timeDataArray = new Uint8Array(audioAnalyzer.fftSize);
+  //   audioAnalyzer.getByteFrequencyData(frequencyDataArray);
+  //   audioAnalyzer.getByteTimeDomainData(timeDataArray);
+
+  //   // Connect to audio node    
+  //   const sourceNode = audioContext.createMediaElementSource(audio);
+  //   sourceNode.connect(audioAnalyzer);
+  //   sourceNode.connect(audioContext.destination);
+  // }
+
+  function connect(sourceNode: AudioNode) {
+    audioContext = sourceNode.context;
     audioAnalyzer = audioContext.createAnalyser();
     audioAnalyzer.smoothingTimeConstant = program.smoothingTimeConstant ?? 0.3;
     audioAnalyzer.fftSize = program.fftSize ?? 2048;
 
-    fftDataArray = new Uint8Array(audioAnalyzer.frequencyBinCount);
-    audioAnalyzer.getByteFrequencyData(fftDataArray);
+    frequencyDataArray = new Uint8Array(audioAnalyzer.frequencyBinCount);
+    timeDataArray = new Uint8Array(audioAnalyzer.fftSize);
+    audioAnalyzer.getByteFrequencyData(frequencyDataArray);
+    audioAnalyzer.getByteTimeDomainData(timeDataArray);
 
-    // Connect to audio node    
-    const sourceNode = audioContext.createMediaElementSource(audio);
+    sourceNode.context
     sourceNode.connect(audioAnalyzer);
-    sourceNode.connect(audioContext.destination);
+    return audioAnalyzer;
+    // sourceNode.connect(audioContext.destination);
   }
 
-  function attachMediaStream(stream: MediaStream) {
-    audioContext = new AudioContext();
-    audioAnalyzer = audioContext.createAnalyser();
-    audioAnalyzer.smoothingTimeConstant = program.smoothingTimeConstant ?? 0.3;
-    audioAnalyzer.fftSize = program.fftSize ?? 2048;
 
-    fftDataArray = new Uint8Array(audioAnalyzer.frequencyBinCount);
-    audioAnalyzer.getByteFrequencyData(fftDataArray);
-
-    // Connect to audio node    
-    const sourceNode = audioContext.createMediaStreamSource(stream);
-    sourceNode.connect(audioAnalyzer);
-    sourceNode.connect(audioContext.destination);
-  }
 
   onMounted(() => {
     if (!_canvas?.value) {
@@ -141,7 +149,8 @@ export default function useVisualizer(
   return {
     start,
     toggleFullscreen,
-    attachAudio,
-    attachMediaStream
+    connect
+    // attachAudio,
+    // attachMediaStream
   }
 }
