@@ -7,12 +7,16 @@ export interface Program {
   /** Value between [0, 1] */
   smoothingTimeConstant?: number,
   frameHandler: (
-    context: CanvasRenderingContext2D,
-    delta: number,
+    context: CanvasRenderingContext2D,    
     frequency: Uint8Array,
     time: Uint8Array,
+    deltaTime: number,
+    deltaFrames: number,
   ) => void;
 }
+
+export const AMPLITUDE_FREQUENCY = 255;
+export const AMPLITUDE_TIME = 255;
 
 function updateCanvasContext(context: CanvasRenderingContext2D, opts: { clearFrame?: boolean }) {
   const canvas = context.canvas;
@@ -72,16 +76,12 @@ export default function useVisualizer(
 
     if (!canvasContext) throw new Error('Failed to retrieve context');
     updateCanvasContext(canvasContext, { clearFrame: true });
-    program.frameHandler(canvasContext, deltaFrames, frequencyDataArray, timeDataArray);
+    program.frameHandler(canvasContext, frequencyDataArray, timeDataArray, deltaMilliseconds, deltaFrames);
 
     timePrevious = timeNow;
     frameHandler = requestAnimationFrame(animate)
   }
 
-  /**
-   * Kick off the visualization animation loop.
-   * Must be called after the `onMounted` hook fires.
-   */
   function start() {
     frameHandler = requestAnimationFrame(animate);
   }
@@ -89,23 +89,6 @@ export default function useVisualizer(
   function toggleFullscreen() {
     launchIntoFullscreen(canvas);
   }
-
-  // function attachAudio(audio: HTMLAudioElement) {
-  //   audioContext = new AudioContext();
-  //   audioAnalyzer = audioContext.createAnalyser();
-  //   audioAnalyzer.smoothingTimeConstant = program.smoothingTimeConstant ?? 0.3;
-  //   audioAnalyzer.fftSize = program.fftSize ?? 2048;
-
-  //   frequencyDataArray = new Uint8Array(audioAnalyzer.frequencyBinCount);
-  //   timeDataArray = new Uint8Array(audioAnalyzer.fftSize);
-  //   audioAnalyzer.getByteFrequencyData(frequencyDataArray);
-  //   audioAnalyzer.getByteTimeDomainData(timeDataArray);
-
-  //   // Connect to audio node    
-  //   const sourceNode = audioContext.createMediaElementSource(audio);
-  //   sourceNode.connect(audioAnalyzer);
-  //   sourceNode.connect(audioContext.destination);
-  // }
 
   function connect(sourceNode: AudioNode) {
     audioContext = sourceNode.context;
@@ -121,7 +104,6 @@ export default function useVisualizer(
     sourceNode.context
     sourceNode.connect(audioAnalyzer);
     return audioAnalyzer;
-    // sourceNode.connect(audioContext.destination);
   }
 
 
@@ -147,10 +129,8 @@ export default function useVisualizer(
   });
 
   return {
-    start,
+    start,    
+    connect,
     toggleFullscreen,
-    connect
-    // attachAudio,
-    // attachMediaStream
   }
 }

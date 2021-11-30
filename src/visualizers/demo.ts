@@ -43,7 +43,7 @@ const demo: Program = {
   contextId: '2d',
   fftSize: 2048,
   smoothingTimeConstant: 0.8,
-  frameHandler(context: CanvasRenderingContext2D, delta: number, frequency: Uint8Array, time: Uint8Array) {
+  frameHandler(context: CanvasRenderingContext2D, frequency: Uint8Array, time: Uint8Array, deltaTime: number, deltaFrames: number) {
     const { width, height } = context.canvas;
     drawSpectrogram(context, frequency);
     drawWaveform(context, time);

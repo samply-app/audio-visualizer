@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch } from "vue";
 import useVisualizer from "./useVisualizer";
-import demo from "./visualizers/demo";
+import cucumber from "./visualizers/cucumber";
 
 export default defineComponent({
   setup() {
@@ -10,7 +10,7 @@ export default defineComponent({
     const canvas = ref<HTMLCanvasElement>();
     const audio = ref<HTMLAudioElement>();
 
-    const visualizer = useVisualizer(demo, canvas);
+    const visualizer = useVisualizer(cucumber, canvas);
 
     const selectedDevice = ref("");
     watch(selectedDevice, (value, prev) => {
