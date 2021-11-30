@@ -19,7 +19,7 @@ export default defineComponent({
       getAudioInput();
     });
 
-    const audioInputDevices= ref<MediaDeviceInfo[]>([]);
+    const audioInputDevices = ref<MediaDeviceInfo[]>([]);
     navigator.mediaDevices.enumerateDevices().then((devices) => {
       devices.forEach((device) => {
         if (device.kind === "audioinput") {
@@ -29,25 +29,31 @@ export default defineComponent({
       });
     });
 
+    function getInputFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get("deviceId") as string;
+    }
+
     let audioContext: AudioContext;
     function getAudioInput() {
-      console.log(selectedDevice.value);
       if (audioContext) audioContext.close();
+      const deviceId = selectedDevice.value
+        ? selectedDevice.value
+        : getInputFromURL();
       navigator.mediaDevices
-        .getUserMedia({ audio: { deviceId: selectedDevice.value } })
+        .getUserMedia({
+          audio: { deviceId },
+        })
         .then((stream) => {
           audioContext = new AudioContext();
           const streamNode = audioContext.createMediaStreamSource(stream);
+          window.history.replaceState({}, "", `/?deviceId=${deviceId}`);
           visualizer.connect(streamNode);
           visualizer.start();
         });
     }
 
     getAudioInput();
-
-    // function attachAudio() {
-    //   visualizer.attachAudio(audio.value as HTMLAudioElement);
-    // }
 
     return {
       audioSource,
