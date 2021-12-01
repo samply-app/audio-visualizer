@@ -1,39 +1,75 @@
 import { Program, AMPLITUDE_TIME, AMPLITUDE_FREQUENCY } from '../useVisualizer';
 
-let startingHue = 0;
-const spectralRange = 60; // 60 degrees from the anchor
+const GATE_MAX_ENERGY = 0.5;
+const GATE_SPEED = 1 / 10000;
 
-let xOffset = 0;
+let gateIncreasing = true;
+let gateEnergy = 0;
+let startingHue = 0;
+let rotationAngle = 0;
+const spectralRange = 30; // 60 degrees from the anchor
+const rotationSpeed = 0.00005; // 5 radians per-second
 
 function frameHandler(context: CanvasRenderingContext2D, frequency: Uint8Array, time: Uint8Array, deltaTime: number, deltaFrames: number) {
-  const { width, height } = context.canvas;
 
-  startingHue += 1 / 25;
+  function drawBars(samples: Uint8Array, hueBase: number, gateEnergy: number, reversed?: true) {
+    const { width, height } = context.canvas;
+    const barWidth = width / samples.length;
 
-  const numSamples = frequency.length;
-  const horizontalBars = width;
-  const sliceLength = numSamples / horizontalBars;
-  const sliceWidth = width / horizontalBars;
+    for (let i = 0; i < samples.length; i += 1) {
 
-  for (let i = 0; i < horizontalBars; i += 1) {
-    const slice = frequency.slice(i * sliceLength, (i + 1) * sliceLength)
-    const energy = slice.reduce((a, b) => a + b, 0) / slice.length;
-    const energyNormalized = energy / AMPLITUDE_FREQUENCY;
+      const energyNormalized = samples[reversed ? samples.length - i - 1 : i] / AMPLITUDE_FREQUENCY;
 
-    const hue = Math.floor(startingHue);
-    const saturation = '50%'
-    const lumanice = `${Math.floor(energyNormalized * 50) + 25}%`
+      const saturation = '50%'
+      const lumanice = `${Math.max(Math.floor(energyNormalized * 75), gateEnergy)}%`
+      const hueOffset = energyNormalized - 0.5; // shift to [-0.5, 0.5]     
+      const hue = Math.floor(hueBase + hueOffset * spectralRange);
 
-    context.fillStyle = 'hsl(' + hue + ',' + saturation + ',' + lumanice + ')';
-    context.fillRect(i * sliceWidth , 0, (sliceWidth + 1), height);
+      const barHeight = Math.hypot(height, width);
+
+      const xPos = i * barWidth;
+      const yPos = -((barHeight - height) / 2);
+
+      if (energyNormalized > gateEnergy) {
+        context.fillStyle = 'hsla(' + hue + ',' + saturation + ',' + lumanice + ', ' + energyNormalized + ')';
+        context.fillRect(xPos, yPos, barWidth, barHeight);
+      }
+    }
+
   }
+
+  const { width, height } = context.canvas;
+  const frequencyCropped = frequency.slice(0, Math.floor(frequency.length * 0.7))
+
+  // transform canvas for bars
+  context.translate(width / 2, height / 2)
+  context.rotate(rotationAngle);
+  context.translate(-width / 2, -height / 2)
+
+  drawBars(frequencyCropped, startingHue, gateEnergy);
+  drawBars(frequencyCropped, startingHue + spectralRange, gateEnergy, true);
+
+  // update accumulators
+  startingHue += 1 / 25;
+  rotationAngle += rotationSpeed * deltaTime;
+
+
+  if (gateIncreasing) {
+    gateEnergy += deltaTime * GATE_SPEED;
+  } else {
+    gateEnergy -= deltaTime * GATE_SPEED;
+  }
+
+  if (gateIncreasing && gateEnergy > GATE_MAX_ENERGY) gateIncreasing = false;
+  if (!gateIncreasing && gateEnergy < 0) gateIncreasing = true;
+
 
 }
 
 const cucumber: Program = {
   contextId: '2d',
   fftSize: 2048,
-  smoothingTimeConstant: 0.8,
+  smoothingTimeConstant: 0.95,
   frameHandler,
 }
 

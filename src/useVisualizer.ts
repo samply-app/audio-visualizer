@@ -20,8 +20,8 @@ export const AMPLITUDE_TIME = 255;
 
 function updateCanvasContext(context: CanvasRenderingContext2D, opts: { clearFrame?: boolean }) {
   const canvas = context.canvas;
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
+  canvas.width = canvas.clientWidth * devicePixelRatio;
+  canvas.height = canvas.clientHeight * devicePixelRatio;
   if (opts.clearFrame) context.clearRect(0, 0, canvas.width, canvas.height);
   return canvas;
 }
