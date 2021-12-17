@@ -5,7 +5,7 @@ export interface Program {
   contextId: '2d',
   fftSize?: number,
   /** Value between [0, 1] */
-  smoothingTimeConstant?: number,
+  smoothingTimeConstant?: number,  
   frameHandler: (
     context: CanvasRenderingContext2D,    
     frequency: Uint8Array,
@@ -13,6 +13,7 @@ export interface Program {
     deltaTime: number,
     deltaFrames: number,
   ) => void;
+  init?: (context: CanvasRenderingContext2D) => void;
 }
 
 export const AMPLITUDE_FREQUENCY = 255;
@@ -122,6 +123,7 @@ export default function useVisualizer(
     if (!ctx) throw new Error('Failed to retrieve context from canvas.');
     canvasContext = ctx;
     canvasContext.scale(devicePixelRatio, devicePixelRatio); // ensure all drawing operations are scaled
+    if (program.init) program.init(canvasContext);
   });
 
   onUnmounted(() => {

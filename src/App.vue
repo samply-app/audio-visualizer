@@ -2,6 +2,7 @@
 import { defineComponent, ref, watch } from "vue";
 import useVisualizer from "./useVisualizer";
 import cucumber from "./visualizers/cucumber";
+import fractal from './visualizers/fractal';
 
 export default defineComponent({
   setup() {
@@ -10,7 +11,7 @@ export default defineComponent({
     const canvas = ref<HTMLCanvasElement>();
     const audio = ref<HTMLAudioElement>();
 
-    const visualizer = useVisualizer(cucumber, canvas);
+    const visualizer = useVisualizer(fractal, canvas);
 
     const selectedDevice = ref("");
     watch(selectedDevice, (value, prev) => {
@@ -109,7 +110,9 @@ body {
 
 .container {
   position: relative;
-  padding-top: 56.25%; /* 16:9 Aspect Ratio (divide 9 by 16 = 0.5625) */
+  /* padding-top: 56.25%; 16:9 Aspect Ratio (divide 9 by 16 = 0.5625) */
+  width: 100%;
+  height: 100vh;
 }
 
 .container canvas {
