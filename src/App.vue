@@ -2,7 +2,7 @@
 import { defineComponent, ref, watch } from "vue";
 import useVisualizer from "./useVisualizer";
 import cucumber from "./visualizers/cucumber";
-import fractal from './visualizers/fractal';
+import canyon from './visualizers/canyon';
 
 export default defineComponent({
   setup() {
@@ -11,7 +11,7 @@ export default defineComponent({
     const canvas = ref<HTMLCanvasElement>();
     const audio = ref<HTMLAudioElement>();
 
-    const visualizer = useVisualizer(fractal, canvas);
+    const visualizer = useVisualizer(canyon, canvas);
 
     const selectedDevice = ref("");
     watch(selectedDevice, (value, prev) => {

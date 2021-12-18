@@ -19,10 +19,19 @@ export interface Program {
 export const AMPLITUDE_FREQUENCY = 255;
 export const AMPLITUDE_TIME = 255;
 
+let lastWidth = 0;
+let lastHeight = 0;
 function updateCanvasContext(context: CanvasRenderingContext2D, opts: { clearFrame?: boolean }) {
   const canvas = context.canvas;
-  canvas.width = canvas.clientWidth * devicePixelRatio;
-  canvas.height = canvas.clientHeight * devicePixelRatio;
+  const newWidth = canvas.clientWidth * devicePixelRatio;
+  const newHeight = canvas.clientHeight * devicePixelRatio;
+  if(lastWidth !== newWidth || lastHeight !== newHeight) {
+    canvas.width = newWidth;
+    canvas.height = newHeight;  
+    lastWidth = newWidth;
+    lastHeight = newHeight;        
+  }
+
   if (opts.clearFrame) context.clearRect(0, 0, canvas.width, canvas.height);
   return canvas;
 }
