@@ -1,74 +1,3 @@
-<script lang="ts">
-import { defineComponent, ref, watch } from "vue";
-import useVisualizer from "./useVisualizer";
-import cucumber from "./visualizers/cucumber";
-import canyon from './visualizers/canyon';
-
-export default defineComponent({
-  setup() {
-    const audioSource =
-      "https://firebasestorage.googleapis.com/v0/b/samply-a03ff.appspot.com/o/users%2FbRuvm5M2dRQasSgiImVVGlHAO1g1%2Faudio%2Fd4a0f9d3-7f9f-4714-a2b3-9a6731e34df7%2Foutput%2Faac256k%40output.mp4?alt=media&token=7d7a6584-c0b9-4380-bd2b-443fab580741";
-    const canvas = ref<HTMLCanvasElement>();
-    const audio = ref<HTMLAudioElement>();
-
-    const visualizer = useVisualizer(canyon, canvas);
-
-    const selectedDevice = ref("");
-    watch(selectedDevice, (value, prev) => {
-      if (value === prev) return;
-      console.log("Changing input device", value);
-      getAudioInput();
-    });
-
-    const audioInputDevices = ref<MediaDeviceInfo[]>([]);
-    navigator.mediaDevices.enumerateDevices().then((devices) => {
-      devices.forEach((device) => {
-        if (device.kind === "audioinput") {
-          audioInputDevices.value.push(device);
-          console.log(device.kind, device.label, device.deviceId);
-        }
-      });
-    });
-
-    function getInputFromURL() {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get("deviceId") as string;
-    }
-
-    let audioContext: AudioContext;
-    function getAudioInput() {
-      if (audioContext) audioContext.close();
-      const deviceId = selectedDevice.value
-        ? selectedDevice.value
-        : getInputFromURL();
-      navigator.mediaDevices
-        .getUserMedia({
-          audio: { deviceId },
-        })
-        .then((stream) => {
-          audioContext = new AudioContext();
-          const streamNode = audioContext.createMediaStreamSource(stream);
-          window.history.replaceState({}, "", `/?deviceId=${deviceId}`);
-          visualizer.connect(streamNode);
-          visualizer.start();
-        });
-    }
-
-    getAudioInput();
-
-    return {
-      audioSource,
-      canvas,
-      audio,
-      visualizer,
-      audioInputDevices,
-      selectedDevice,
-    };
-  },
-});
-</script>
-
-
 <template>
   <div>
     <div class="container">
@@ -94,6 +23,63 @@ export default defineComponent({
     </select>
   </div>
 </template>
+
+<script lang="ts" setup>
+import { defineComponent, ref, watch } from "vue";
+import useVisualizer from "./useVisualizer";
+import cucumber from "./visualizers/cucumber";
+import canyon from "./visualizers/canyon";
+
+const audioSource =
+  "https://firebasestorage.googleapis.com/v0/b/samply-a03ff.appspot.com/o/users%2FbRuvm5M2dRQasSgiImVVGlHAO1g1%2Faudio%2Fd4a0f9d3-7f9f-4714-a2b3-9a6731e34df7%2Foutput%2Faac256k%40output.mp4?alt=media&token=7d7a6584-c0b9-4380-bd2b-443fab580741";
+const canvas = ref<HTMLCanvasElement>();
+const audio = ref<HTMLAudioElement>();
+
+const visualizer = useVisualizer(canyon, canvas);
+
+const selectedDevice = ref("");
+watch(selectedDevice, (value, prev) => {
+  if (value === prev) return;
+  console.log("Changing input device", value);
+  getAudioInput();
+});
+
+const audioInputDevices = ref<MediaDeviceInfo[]>([]);
+navigator.mediaDevices.enumerateDevices().then(devices => {
+  devices.forEach(device => {
+    if (device.kind === "audioinput") {
+      audioInputDevices.value.push(device);
+      console.log(device.kind, device.label, device.deviceId);
+    }
+  });
+});
+
+function getInputFromURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get("deviceId") as string;
+}
+
+let audioContext: AudioContext;
+function getAudioInput() {
+  if (audioContext) audioContext.close();
+  const deviceId = selectedDevice.value
+    ? selectedDevice.value
+    : getInputFromURL();
+  navigator.mediaDevices
+    .getUserMedia({
+      audio: { deviceId }
+    })
+    .then(stream => {
+      audioContext = new AudioContext();
+      const streamNode = audioContext.createMediaStreamSource(stream);
+      window.history.replaceState({}, "", `/?deviceId=${deviceId}`);
+      visualizer.connect(streamNode);
+      visualizer.start();
+    });
+}
+
+getAudioInput();
+</script>
 
 <style>
 #app {
