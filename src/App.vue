@@ -3,39 +3,42 @@
     <div class="container">
       <canvas ref="canvas" />
     </div>
-    <button @click="visualizer.start()">Start</button>
-    <button @click="visualizer.toggleFullscreen()">Fullscreen</button>
-    <audio
-      ref="audio"
-      controls
-      crossorigin="anonymous"
-      :src="audioSource"
-      style="display: block; margin: auto"
-    />
-    <select name="pets" id="pet-select" v-model="selectedDevice">
-      <option
-        v-for="device in audioInputDevices"
-        :key="device.deviceId"
-        :value="device.deviceId"
-      >
-        {{ device.label }}
-      </option>
-    </select>
+    <div style="background-color: black">
+      <button @click="visualizer.start()">Start</button>
+      <button @click="visualizer.toggleFullscreen()">Fullscreen</button>
+      <audio
+        ref="audio"
+        controls
+        crossorigin="anonymous"
+        :src="audioSource"
+        style="display: block; margin: auto"
+      />
+      <select name="pets" id="pet-select" v-model="selectedDevice">
+        <option
+          v-for="device in audioInputDevices"
+          :key="device.deviceId"
+          :value="device.deviceId"
+        >
+          {{ device.label }}
+        </option>
+      </select>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { defineComponent, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import useVisualizer from "./useVisualizer";
 import cucumber from "./visualizers/cucumber";
 import canyon from "./visualizers/canyon";
+import portal from "./visualizers/portal";
 
 const audioSource =
   "https://firebasestorage.googleapis.com/v0/b/samply-a03ff.appspot.com/o/users%2FbRuvm5M2dRQasSgiImVVGlHAO1g1%2Faudio%2Fd4a0f9d3-7f9f-4714-a2b3-9a6731e34df7%2Foutput%2Faac256k%40output.mp4?alt=media&token=7d7a6584-c0b9-4380-bd2b-443fab580741";
 const canvas = ref<HTMLCanvasElement>();
 const audio = ref<HTMLAudioElement>();
 
-const visualizer = useVisualizer(canyon, canvas);
+const visualizer = useVisualizer(portal, canvas);
 
 const selectedDevice = ref("");
 watch(selectedDevice, (value, prev) => {

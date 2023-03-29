@@ -1,17 +1,17 @@
-import { onMounted, onUnmounted, Ref } from 'vue';
+import { onMounted, onUnmounted, Ref, ref } from "vue";
 
 export interface Program {
   /** The type of drawing context */
-  contextId: '2d',
-  fftSize?: number,
+  contextId: "2d";
+  fftSize?: number;
   /** Value between [0, 1] */
-  smoothingTimeConstant?: number,  
+  smoothingTimeConstant?: number;
   frameHandler: (
-    context: CanvasRenderingContext2D,    
+    context: CanvasRenderingContext2D,
     frequency: Uint8Array,
     time: Uint8Array,
     deltaTime: number,
-    deltaFrames: number,
+    deltaFrames: number
   ) => void;
   init?: (context: CanvasRenderingContext2D) => void;
 }
@@ -21,15 +21,18 @@ export const AMPLITUDE_TIME = 255;
 
 let lastWidth = 0;
 let lastHeight = 0;
-function updateCanvasContext(context: CanvasRenderingContext2D, opts: { clearFrame?: boolean }) {
+function updateCanvasContext(
+  context: CanvasRenderingContext2D,
+  opts: { clearFrame?: boolean }
+) {
   const canvas = context.canvas;
   const newWidth = canvas.clientWidth * devicePixelRatio;
   const newHeight = canvas.clientHeight * devicePixelRatio;
-  if(lastWidth !== newWidth || lastHeight !== newHeight) {
+  if (lastWidth !== newWidth || lastHeight !== newHeight) {
     canvas.width = newWidth;
-    canvas.height = newHeight;  
+    canvas.height = newHeight;
     lastWidth = newWidth;
-    lastHeight = newHeight;        
+    lastHeight = newHeight;
   }
 
   if (opts.clearFrame) context.clearRect(0, 0, canvas.width, canvas.height);
@@ -56,13 +59,13 @@ function launchIntoFullscreen(element: HTMLElement) {
 
 const FRAME_DURATION = 1000 / 60; // 60fps frame duration ~16.66ms
 
-const getTime = (performance && performance.now) ? performance.now.bind(performance) : Date.now; // If available we are using native "performance" API instead of "Date"
+const getTime =
+  performance && performance.now ? performance.now.bind(performance) : Date.now; // If available we are using native "performance" API instead of "Date"
 
 export default function useVisualizer(
   program: Program,
   _canvas?: Ref<HTMLCanvasElement | undefined>
 ) {
-
   let canvas: HTMLCanvasElement;
   let canvasContext: CanvasRenderingContext2D;
 
@@ -70,7 +73,6 @@ export default function useVisualizer(
   let audioAnalyzer: AnalyserNode;
   let frequencyDataArray: Uint8Array;
   let timeDataArray: Uint8Array;
-
 
   let frameHandler: number;
   let timePrevious = getTime();
@@ -84,16 +86,29 @@ export default function useVisualizer(
     audioAnalyzer.getByteFrequencyData(frequencyDataArray);
     audioAnalyzer.getByteTimeDomainData(timeDataArray);
 
-    if (!canvasContext) throw new Error('Failed to retrieve context');
+    if (!canvasContext) throw new Error("Failed to retrieve context");
     updateCanvasContext(canvasContext, { clearFrame: true });
-    program.frameHandler(canvasContext, frequencyDataArray, timeDataArray, deltaMilliseconds, deltaFrames);
+    program.frameHandler(
+      canvasContext,
+      frequencyDataArray,
+      timeDataArray,
+      deltaMilliseconds,
+      deltaFrames
+    );
 
     timePrevious = timeNow;
-    frameHandler = requestAnimationFrame(animate)
+    frameHandler = requestAnimationFrame(animate);
   }
 
+  const playing = ref(false);
   function start() {
     frameHandler = requestAnimationFrame(animate);
+    playing.value = true;
+  }
+
+  function stop() {
+    cancelAnimationFrame(frameHandler ?? -1);
+    playing.value = false;
   }
 
   function toggleFullscreen() {
@@ -111,25 +126,23 @@ export default function useVisualizer(
     audioAnalyzer.getByteFrequencyData(frequencyDataArray);
     audioAnalyzer.getByteTimeDomainData(timeDataArray);
 
-    sourceNode.context
+    sourceNode.context;
     sourceNode.connect(audioAnalyzer);
     return audioAnalyzer;
   }
 
-
-
   onMounted(() => {
     if (!_canvas?.value) {
-      console.warn('Creating hidden canvas');
+      console.warn("Creating hidden canvas");
       canvas = document.createElement("canvas");
-      canvas.style.display = 'none'; // hide the canvas
+      canvas.style.display = "none"; // hide the canvas
       document.body.appendChild(canvas);
     } else {
-      canvas = _canvas.value
+      canvas = _canvas.value;
     }
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Failed to retrieve context from canvas.');
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Failed to retrieve context from canvas.");
     canvasContext = ctx;
     canvasContext.scale(devicePixelRatio, devicePixelRatio); // ensure all drawing operations are scaled
     if (program.init) program.init(canvasContext);
@@ -140,8 +153,10 @@ export default function useVisualizer(
   });
 
   return {
-    start,    
+    playing,
+    start,
+    stop,
     connect,
-    toggleFullscreen,
-  }
+    toggleFullscreen
+  };
 }
