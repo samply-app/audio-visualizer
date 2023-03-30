@@ -21,6 +21,9 @@ let rays: { velocity: number; point?: Polar2 }[] = Array.from(
   () => ({ velocity: 0, r: 0 })
 );
 
+let rotation = 0;
+const rotationIncrement = 0.005;
+
 function frameHandler(
   ctx: CanvasRenderingContext2D,
   frequency: Uint8Array,
@@ -67,8 +70,8 @@ function frameHandler(
       ctx.fillStyle = curveFill;
       ctx.fill();
     }
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = curveFill;
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "#000000";
     ctx.stroke();
     // Draw control points
     // ctx.strokeStyle = "orange";
@@ -171,9 +174,9 @@ function frameHandler(
   // calculate radial velocity for each frequency
   frequencies.forEach((f, idx) => {
     const velocity: number = (f - lastFreqMags[idx]) / deltaTime;
-    if (velocity > rays[idx]?.velocity) {
-      rays[idx].velocity = velocity;
-      rays[idx].point = corePortalArray[idx];
+    if (velocity > 1) {
+      const { r, theta } = corePortalArray[idx];
+      rays.push({ velocity, point: { r, theta: theta + rotation } });
     }
   });
 
@@ -188,22 +191,25 @@ function frameHandler(
       drawRay(
         ray.point,
         "#000000",
-        radialColorByIndex(idx, 50, 50, 1 - ray.point.r / maxRayLength)
+        radialColorByIndex(idx, 50, 50 - (50 * ray.point.r) / maxRayLength, 1)
       );
       ray.point.r += ray.velocity;
     }
   });
 
+  ctx.rotate(rotation);
+  rotation += rotationIncrement;
+
   corePortalArray.forEach((point, idx) => {
     drawRay(
       point,
       `hsl(${(idx * 360) / radialCount}, 200%, 0%)`,
-      radialColorByIndex(idx)
+      radialColorByIndex(idx, 50, 50, 1)
     );
   });
 
-  ctx.closePath();
   ctx.resetTransform();
+  ctx.closePath();
 
   // set the last frequencies
   lastFreqMags = new Uint8Array(frequencies);
