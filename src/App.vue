@@ -31,7 +31,7 @@ import { ref, watch } from "vue";
 import useVisualizer from "./useVisualizer";
 import cucumber from "./visualizers/cucumber";
 import canyon from "./visualizers/canyon";
-import portal from "./visualizers/portal";
+import portal from "./visualizers/solar";
 
 const audioSource =
   "https://firebasestorage.googleapis.com/v0/b/samply-a03ff.appspot.com/o/users%2FbRuvm5M2dRQasSgiImVVGlHAO1g1%2Faudio%2Fd4a0f9d3-7f9f-4714-a2b3-9a6731e34df7%2Foutput%2Faac256k%40output.mp4?alt=media&token=7d7a6584-c0b9-4380-bd2b-443fab580741";

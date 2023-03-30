@@ -94,8 +94,8 @@ function frameHandler(
   const maxRayLength = Math.min(width, height);
 
   // grab some frequencies to visualize
-  const frequencies = Array.from(frequency.slice(0, rayCount));
-  // frequencies.push(...frequencies.slice());
+  const freqStart = 3;
+  const frequencies = frequency.slice(freqStart, rayCount + freqStart);
 
   /** #Draw centered outlined points */
   function drawCenteredPoint(point: Vec2, radius = 4, color = "aqua") {
@@ -173,11 +173,6 @@ function frameHandler(
     arcLength = 2 * Math.PI
   ) {
     return (radial * arcLength) / count;
-  }
-
-  // psuedo-randomly distribute rays
-  for (let idx = 0; idx < rayCount / 2; idx++) {
-    frequencies.push(...frequencies.splice((idx * 2) % 12, 1));
   }
 
   /** #Draw a ray given polar coordinates */
