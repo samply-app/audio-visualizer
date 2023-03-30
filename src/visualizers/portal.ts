@@ -11,6 +11,18 @@ interface Polar2 {
   theta: number;
 }
 
+interface Ray2 {
+  radial: Polar2;
+  assymetry: { a: number; b: number };
+  velocity?: number;
+  axial?: Vec2;
+}
+
+interface RayPartical {
+  radial: Polar2;
+  velocity: number;
+}
+
 function init(context: CanvasRenderingContext2D) {
   // optional
 }
@@ -28,9 +40,20 @@ let flares: {
   velocity: number;
   point: Polar2;
   hsl: { h: number; s: number; l: number };
-}[] = Array.from({ length: rayCount }, () => ({ velocity: 0, r: 0 }));
+}[] = Array.from({ length: rayCount }, () => ({
+  velocity: 0,
+  point: { r: 0, theta: 0 },
+  hsl: { h: 0, s: 0, l: 0 }
+}));
 
 // #region Animation Globals
+// -- Shape
+const rayAssymetryMag = 50; // pixel length value to randomize ray length
+const lastRayAssymetry: { a: number; b: number } = Array.from(
+  { length: rayCount },
+  () => ({ a: 0, b: 0 })
+);
+
 // -- Velocity
 // ---- Rays
 const rayVelScalar = 2;
@@ -39,9 +62,13 @@ const rayVelScalar = 2;
 const flareVelThreshold = 0.75; // threshold which generates flare
 const flareVelScalar = rayVelScalar * 2;
 
+// ---- Coronal Mass Ejection
+const cmeVelThreshold = 0.75; // threshold which generates CME
+
 // -- Rotation
 let rotation = 0;
 const rotationIncrement = 0.002;
+// KLS TODO: const rotationVolScalar = 0.1;
 
 // -- Color
 let hueShift = 0;
@@ -64,8 +91,8 @@ function frameHandler(
   const center: Vec2 = { x: ctx.canvas.width / 2, y: ctx.canvas.height / 2 };
   const maxRayLength = Math.min(width, height);
 
-  /** Draw centered outlined points */
-  function drawDebugPoint(point: Vec2, radius = 4, color = "aqua") {
+  /** #Draw centered outlined points */
+  function drawCenteredPoint(point: Vec2, radius = 4, color = "aqua") {
     ctx.strokeStyle = color;
     ctx.beginPath();
     ctx.arc(point.x, point.y, radius, 0, 2 * Math.PI);
@@ -73,7 +100,7 @@ function frameHandler(
   }
 
   /**
-   * Draw and highlight the control points of a bezier curve
+   * #Draw and highlight the control points of a bezier curve
    * Use for debugging.
    * @param start
    * @param cp1
@@ -116,6 +143,29 @@ function frameHandler(
     // ctx.stroke();
   }
 
+  /** #Draw CorONaL MaSs ejECtiOn duuUUuUUddE */
+  function drawCME(
+    origin: Vec2,
+    point: Vec2,
+    curveColor = "cyan",
+    curveFill?: string
+  ) {
+    // Draw bezier curve
+    ctx.strokeStyle = curveColor;
+    ctx.beginPath();
+    ctx.moveTo(origin.x, origin.y);
+    ctx.lineTo(point.x, point.y);
+    // Draw
+    drawCenteredPoint(point, 4, curveFill);
+    if (curveFill) {
+      ctx.fillStyle = curveFill;
+      ctx.fill();
+    }
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = curveColor;
+    ctx.stroke();
+  }
+
   /** Return a cartesian point from a radial magnitude and an angular */
   function polarToCartesian(polar: Polar2): Vec2 {
     var x = (polar.r + minRadius) * Math.cos(polar.theta);
@@ -142,39 +192,35 @@ function frameHandler(
   const frequencies = Array.from(frequency.slice(0, rayCount / 2));
   frequencies.push(...frequencies.slice());
 
-  /** Draw a ray given polar coordinates */
+  /** #Draw a ray given polar coordinates */
   function drawRay(
     point: Polar2,
     strokeColor = "cyan",
     fillColor = "cyan",
-    angularWidth = rayWidth
+    angularWidth = rayWidth,
+    axial: Vec2 = { x: 0, y: 0 },
+    assymetry: { a: number; b: number } = { a: 0, b: 0 }
   ) {
     // Create control points on either side of vector
     let rayA_polar: Polar2 = {
-      r: point.r,
+      r: point.r + assymetry.a,
       theta: point.theta - angularWidth
     };
     let rayB_polar: Polar2 = {
-      r: point.r,
+      r: point.r + assymetry.b,
       theta: point.theta + angularWidth
     };
     const rayA_cart: Vec2 = polarToCartesian(rayA_polar);
     const rayB_cart: Vec2 = polarToCartesian(rayB_polar);
 
     // Draw the ray
-    drawBezier(
-      { x: 0, y: 0 },
-      rayA_cart,
-      rayB_cart,
-      { x: 0, y: 0 },
-      strokeColor,
-      fillColor
-    );
+    drawBezier(axial, rayA_cart, rayB_cart, axial, strokeColor, fillColor);
+    // drawCME(axial, rayA_cart, rayB_cart, axial, strokeColor, fillColor);
 
     // KLS DEBUG draw control points
-    // drawDebugPoint(rayA_cart, 8, "red");
-    // drawDebugPoint(rayB_cart, 8, "orange");
-    // drawDebugPoint(polarToCartesian(point), 4, "cyan");
+    // drawCenteredPoint(rayA_cart, 8, "red");
+    // drawCenteredPoint(rayB_cart, 8, "orange");
+    // drawCenteredPoint(polarToCartesian(point), 4, "cyan");
   }
 
   const corePortalArray: Polar2[] = Array.from(
@@ -191,14 +237,16 @@ function frameHandler(
   // Draw the core portal array
   ctx.beginPath();
 
-  // const hues = Array.from({ length: rayCount / 2 }, (_, idx) =>
-  //   Math.floor((idx * hueSpread) / idx)
-  // );
+  const hues: number[] = Array.from(
+    { length: rayCount / 2 },
+    (_, idx) => hueShift + (idx * hueSpread) / (rayCount / 2)
+  );
+  hues.push(...hues.slice().reverse());
 
-  function getHslForRadial(idx: number): { h: number; s: number; l: number } {
-    // make the hue "wrap" around the spread
+  function getHslForRay(idx: number): { h: number; s: number; l: number } {
+    // TODO make the hue "wrap" around the spread
     const hue = hueShift + (idx * hueSpread) / rayCount;
-    return { h: hue, s: 50, l: 50 };
+    return { h: hues[idx], s: 50, l: 50 };
   }
 
   function makeColorStyleString(
@@ -213,14 +261,12 @@ function frameHandler(
   // calculate radial velocity for each frequency
   frequencies.forEach((f, idx) => {
     const velocity: number = (f - lastFreqMags[idx]) / deltaTime;
-
-    // ----
     if (velocity > flareVelThreshold) {
       const { r, theta } = corePortalArray[idx];
       flares.push({
         velocity: velocity * flareVelScalar,
         point: { r, theta: theta + rotation },
-        hsl: getHslForRadial(idx)
+        hsl: getHslForRay(idx)
       });
     }
   });
@@ -243,6 +289,10 @@ function frameHandler(
 
       // draw the ray
       drawRay(ray.point, color, color, flareWidth);
+      // draw CME if over velocity threshold
+      if (ray.velocity > cmeVelThreshold) {
+        drawCME(center, polarToCartesian(ray.point), color, 4);
+      }
       ray.point.r += ray.velocity;
     }
   });
@@ -254,9 +304,9 @@ function frameHandler(
 
   // #Draw Rays
   corePortalArray.forEach((point, idx) => {
-    const hsl = getHslForRadial(idx);
+    const hsl = getHslForRay(idx);
     const colorString = makeColorStyleString(hsl.h, hsl.s, hsl.l, 1);
-    drawRay(point, "#000000", colorString);
+    drawRay(point, "#000000", colorString, rayWidth);
   });
 
   ctx.resetTransform();
