@@ -36,7 +36,7 @@ const rayCount = 13;
 const rayWidth = Math.PI / 16;
 const flareWidth = rayWidth / 2;
 
-const minRadius = 10;
+const minRadius = 40;
 // #endregion Default Config
 
 let lastFreqMags: Uint8Array = new Uint8Array(rayCount);
@@ -155,8 +155,8 @@ function frameHandler(
 
   /** Return a cartesian point from a radial magnitude and an angular */
   function polarToCartesian(polar: Polar2): Vec2 {
-    var x = (polar.r + minRadius) * Math.cos(polar.theta);
-    var y = (polar.r + minRadius) * Math.sin(polar.theta);
+    var x = polar.r * Math.cos(polar.theta);
+    var y = polar.r * Math.sin(polar.theta);
     return { x, y };
   }
 
@@ -177,7 +177,7 @@ function frameHandler(
 
   // psuedo-randomly distribute rays
   for (let idx = 0; idx < rayCount / 2; idx++) {
-    frequencies.push(...frequencies.splice((idx * 7) % 12, 1));
+    frequencies.push(...frequencies.splice((idx * 2) % 12, 1));
   }
 
   /** #Draw a ray given polar coordinates */
