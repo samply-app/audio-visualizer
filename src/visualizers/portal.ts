@@ -24,6 +24,7 @@ interface Cme2 {
   velocity: number;
   hsl: { h: number; s: number; l: number };
   sizeMult: number;
+  driftMult: number;
 }
 
 function init(context: CanvasRenderingContext2D) {
@@ -49,12 +50,14 @@ const lastRayAssymetry: { a: number; b: number } = Array.from(
 );
 
 // -- Velocity
+let maxVelocity: number;
+
 // ---- Rays
 const rayVelScalar = 2;
 
 // ---- Flares
-const flareVelThreshold = 0.3; // threshold which generates flare
-const flareVelMult = rayVelScalar * 10;
+const flareVelThreshold = 0.45; // threshold which generates flare
+const flareVelMult = rayVelScalar * 5;
 const flares: Flare2[] = [];
 const flareVibrancyMult = 10;
 
@@ -89,6 +92,10 @@ function frameHandler(
   const { width, height } = ctx.canvas;
   const center: Vec2 = { x: ctx.canvas.width / 2, y: ctx.canvas.height / 2 };
   const maxRayLength = Math.min(width, height);
+
+  // grab some frequencies to visualize
+  const frequencies = Array.from(frequency.slice(0, rayCount));
+  // frequencies.push(...frequencies.slice());
 
   /** #Draw centered outlined points */
   function drawCenteredPoint(point: Vec2, radius = 4, color = "aqua") {
@@ -168,11 +175,7 @@ function frameHandler(
     return (radial * arcLength) / count;
   }
 
-  // grab some frequencies and mirror them
-  const frequencies = Array.from(frequency.slice(0, rayCount));
-  // frequencies.push(...frequencies.slice());
-
-  // semi-randomly distribute rays
+  // psuedo-randomly distribute rays
   for (let idx = 0; idx < rayCount / 2; idx++) {
     frequencies.push(...frequencies.splice((idx * 7) % 12, 1));
   }
@@ -183,7 +186,7 @@ function frameHandler(
     strokeColor = "cyan",
     fillColor = "cyan",
     angularWidth = rayWidth,
-    axial: Vec2 = { x: 0, y: 0 },
+    axial: Polar2 = { r: 0, theta: 0 },
     assymetry: { a: number; b: number } = { a: 0, b: 0 }
   ) {
     // Create control points on either side of vector
@@ -198,8 +201,17 @@ function frameHandler(
     const rayA_cart: Vec2 = polarToCartesian(rayA_polar);
     const rayB_cart: Vec2 = polarToCartesian(rayB_polar);
 
+    const axialCart = polarToCartesian(axial);
+
     // Draw the ray
-    drawBezier(axial, rayA_cart, rayB_cart, axial, strokeColor, fillColor);
+    drawBezier(
+      axialCart,
+      rayA_cart,
+      rayB_cart,
+      axialCart,
+      strokeColor,
+      fillColor
+    );
     // drawCME(axial, rayA_cart, rayB_cart, axial, strokeColor, fillColor);
 
     // KLS DEBUG draw control points
@@ -261,30 +273,45 @@ function frameHandler(
         radial: { r: 0, theta: theta + thetaDiff },
         velocity: Math.max(velocity, cmeVelMin) + Math.random() * cmeVelMult,
         hsl,
-        sizeMult: 5
+        sizeMult: 5,
+        driftMult: Math.random()
       });
     }
   });
 
+  // #Draw background gradient
+  const gradient = ctx.createRadialGradient(0, 0, 50, 0, 0, 1000);
+  gradient.addColorStop(0, makeColorStyleString(hueShift));
+  gradient.addColorStop(1, makeColorStyleString(hueShift, 70, 5));
+  ctx.fillStyle = gradient;
+  ctx.arc(0, 0, 1000, 0, 2 * Math.PI, false);
+  ctx.fill();
+
   // #Draw #Flares
   const expiredFlareIdxs: number[] = [];
-  flares.forEach((ray, idx) => {
-    if (ray.point?.r > maxRayLength) {
+  flares.forEach((flare, idx) => {
+    if (flare.point?.r > maxRayLength) {
       expiredFlareIdxs.push(idx);
       return;
     }
     // get color - same for fill and stroke
     const color = makeColorStyleString(
-      ray.hsl.h,
-      ray.hsl.s,
-      50, // - (50 * ray.point.r) / maxRayLength,
-      1 - ray.point.r / maxRayLength
+      flare.hsl.h,
+      flare.hsl.s,
+      50, // - (50 * flare.point.r) / maxRayLength,
+      1 - flare.point.r / maxRayLength
     );
 
     // draw the ray
-    drawRay(ray.point, color, color, flareWidth);
+    const distanceMult = flare.point.r / maxRayLength;
+    const { r, theta } = flare.point;
+    const axial = {
+      r: 0, // Math.max(r - distanceMult * 1000, 0),
+      theta
+    };
+    drawRay(flare.point, color, color, flareWidth, axial);
     // draw CME if over velocity threshold
-    ray.point.r += ray.velocity;
+    flare.point.r += flare.velocity;
   });
   expiredFlareIdxs.forEach(idx => flares.splice(idx, 1));
 
@@ -301,7 +328,8 @@ function frameHandler(
       center,
       polarToCartesian({
         r: cme.radial.r,
-        theta: cme.radial.theta * (1 + Math.sin(distanceMult / 2) / 2)
+        theta:
+          cme.radial.theta * (1 + Math.sin(cme.driftMult * distanceMult) / 2)
       }),
       makeColorStyleString(cme.hsl.h, cme.hsl.s, cme.hsl.l, 1 - distanceMult),
       distanceMult * 40
