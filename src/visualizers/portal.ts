@@ -15,20 +15,35 @@ function init(context: CanvasRenderingContext2D) {
   // optional
 }
 
-const radialCount = 12;
-let lastFreqMags: Uint8Array = new Uint8Array(radialCount);
-let rays: {
+// #region Default Config
+const rayCount = 12;
+const rayWidth = Math.PI / 16;
+const flareWidth = rayWidth / 2;
+
+const minRadius = 10;
+// #endregion Default Config
+
+let lastFreqMags: Uint8Array = new Uint8Array(rayCount);
+let flares: {
   velocity: number;
   point: Polar2;
   hsl: { h: number; s: number; l: number };
-}[] = Array.from({ length: radialCount }, () => ({ velocity: 0, r: 0 }));
+}[] = Array.from({ length: rayCount }, () => ({ velocity: 0, r: 0 }));
 
 // #region Animation Globals
-const rayThreshold = 0.8;
+// -- Velocity
+// ---- Rays
+const rayVelScalar = 2;
 
+// ---- Flares
+const flareVelThreshold = 0.75; // threshold which generates flare
+const flareVelScalar = rayVelScalar * 2;
+
+// -- Rotation
 let rotation = 0;
 const rotationIncrement = 0.002;
 
+// -- Color
 let hueShift = 0;
 const hueSpread = 70;
 const hueIncrement = 0.3;
@@ -47,8 +62,6 @@ function frameHandler(
 ) {
   const { width, height } = ctx.canvas;
   const center: Vec2 = { x: ctx.canvas.width / 2, y: ctx.canvas.height / 2 };
-  const minRadius = 50;
-  const velocityScalar = 1;
   const maxRayLength = Math.min(width, height);
 
   /** Draw centered outlined points */
@@ -119,27 +132,31 @@ function frameHandler(
   /** Get the angle in radians of the specified radial index  */
   function getRadialAngleRadians(
     radial: number,
-    count = radialCount,
+    count = rayCount,
     arcLength = 2 * Math.PI
   ) {
     return (radial * arcLength) / count;
   }
 
   // grab some frequencies and mirror them
-  const frequencies = Array.from(frequency.slice(0, radialCount / 2));
+  const frequencies = Array.from(frequency.slice(0, rayCount / 2));
   frequencies.push(...frequencies.slice());
 
   /** Draw a ray given polar coordinates */
-  function drawRay(point: Polar2, strokeColor = "cyan", fillColor = "cyan") {
+  function drawRay(
+    point: Polar2,
+    strokeColor = "cyan",
+    fillColor = "cyan",
+    angularWidth = rayWidth
+  ) {
     // Create control points on either side of vector
-    const angularPadding = Math.PI / 16;
     let rayA_polar: Polar2 = {
       r: point.r,
-      theta: point.theta - angularPadding
+      theta: point.theta - angularWidth
     };
     let rayB_polar: Polar2 = {
       r: point.r,
-      theta: point.theta + angularPadding
+      theta: point.theta + angularWidth
     };
     const rayA_cart: Vec2 = polarToCartesian(rayA_polar);
     const rayB_cart: Vec2 = polarToCartesian(rayB_polar);
@@ -161,9 +178,9 @@ function frameHandler(
   }
 
   const corePortalArray: Polar2[] = Array.from(
-    { length: radialCount },
+    { length: rayCount },
     (_, idx) => ({
-      r: minRadius + frequencies[idx] * velocityScalar,
+      r: minRadius + frequencies[idx] * rayVelScalar,
       theta: getRadialAngleRadians(idx)
     })
   );
@@ -174,13 +191,13 @@ function frameHandler(
   // Draw the core portal array
   ctx.beginPath();
 
-  // const hues = Array.from({ length: radialCount / 2 }, (_, idx) =>
+  // const hues = Array.from({ length: rayCount / 2 }, (_, idx) =>
   //   Math.floor((idx * hueSpread) / idx)
   // );
 
   function getHslForRadial(idx: number): { h: number; s: number; l: number } {
     // make the hue "wrap" around the spread
-    const hue = hueShift + (idx * hueSpread) / radialCount;
+    const hue = hueShift + (idx * hueSpread) / rayCount;
     return { h: hue, s: 50, l: 50 };
   }
 
@@ -196,17 +213,20 @@ function frameHandler(
   // calculate radial velocity for each frequency
   frequencies.forEach((f, idx) => {
     const velocity: number = (f - lastFreqMags[idx]) / deltaTime;
-    if (velocity > rayThreshold) {
+
+    // ----
+    if (velocity > flareVelThreshold) {
       const { r, theta } = corePortalArray[idx];
-      rays.push({
-        velocity,
+      flares.push({
+        velocity: velocity * flareVelScalar,
         point: { r, theta: theta + rotation },
         hsl: getHslForRadial(idx)
       });
     }
   });
 
-  rays.forEach((ray, idx) => {
+  // #Draw Flares
+  flares.forEach((ray, idx) => {
     if (ray.point?.r && ray.point?.r > maxRayLength) {
       ray.point = { r: 0, theta: 0 };
       ray.velocity = 0;
@@ -218,21 +238,25 @@ function frameHandler(
         ray.hsl.h,
         ray.hsl.s,
         50 - (50 * ray.point.r) / maxRayLength,
-        0.7
+        1 - ray.point.r / maxRayLength
       );
 
       // draw the ray
-      drawRay(ray.point, color, color);
+      drawRay(ray.point, color, color, flareWidth);
       ray.point.r += ray.velocity;
     }
   });
 
+  /** #Translate rotate the canvas after drawing flares
+   * so they maintain their angular position */
   ctx.rotate(rotation);
   rotation += rotationIncrement;
 
+  // #Draw Rays
   corePortalArray.forEach((point, idx) => {
     const hsl = getHslForRadial(idx);
-    drawRay(point, "#000000A0", makeColorStyleString(hsl.h, hsl.s, hsl.l, 1));
+    const colorString = makeColorStyleString(hsl.h, hsl.s, hsl.l, 1);
+    drawRay(point, "#000000", colorString);
   });
 
   ctx.resetTransform();
