@@ -11,16 +11,19 @@ interface Polar2 {
   theta: number;
 }
 
-interface Ray2 {
-  radial: Polar2;
-  assymetry: { a: number; b: number };
-  velocity?: number;
+interface Flare2 {
+  point: Polar2;
+  hsl: { h: number; s: number; l: number };
+  velocity: number;
+  assymetry?: { a: number; b: number };
   axial?: Vec2;
 }
 
-interface RayPartical {
+interface Cme2 {
   radial: Polar2;
   velocity: number;
+  hsl: { h: number; s: number; l: number };
+  sizeMult: number;
 }
 
 function init(context: CanvasRenderingContext2D) {
@@ -28,7 +31,7 @@ function init(context: CanvasRenderingContext2D) {
 }
 
 // #region Default Config
-const rayCount = 12;
+const rayCount = 13;
 const rayWidth = Math.PI / 16;
 const flareWidth = rayWidth / 2;
 
@@ -36,15 +39,6 @@ const minRadius = 10;
 // #endregion Default Config
 
 let lastFreqMags: Uint8Array = new Uint8Array(rayCount);
-let flares: {
-  velocity: number;
-  point: Polar2;
-  hsl: { h: number; s: number; l: number };
-}[] = Array.from({ length: rayCount }, () => ({
-  velocity: 0,
-  point: { r: 0, theta: 0 },
-  hsl: { h: 0, s: 0, l: 0 }
-}));
 
 // #region Animation Globals
 // -- Shape
@@ -59,11 +53,16 @@ const lastRayAssymetry: { a: number; b: number } = Array.from(
 const rayVelScalar = 2;
 
 // ---- Flares
-const flareVelThreshold = 0.75; // threshold which generates flare
-const flareVelScalar = rayVelScalar * 2;
+const flareVelThreshold = 0.3; // threshold which generates flare
+const flareVelMult = rayVelScalar * 10;
+const flares: Flare2[] = [];
+const flareVibrancyMult = 10;
 
 // ---- Coronal Mass Ejection
-const cmeVelThreshold = 0.75; // threshold which generates CME
+const cmeVelMin = 5;
+const cmeVelMult = flareVelMult * 1.5; // threshold which generates CME
+const cmeSizeScalar = 20;
+const cmes: Cme2[] = [];
 
 // -- Rotation
 let rotation = 0;
@@ -127,42 +126,23 @@ function frameHandler(
     ctx.lineWidth = 4;
     ctx.strokeStyle = curveColor;
     ctx.stroke();
-    // Draw control points
-    // ctx.strokeStyle = "orange";
-    // ctx.beginPath();
-    // ctx.arc(start.x, start.y, pointRadius, 0, 2 * Math.PI);
-    // ctx.stroke();
-    // ctx.beginPath();
-    // ctx.arc(cp1.x, cp1.y, pointRadius, 0, 2 * Math.PI);
-    // ctx.stroke();
-    // ctx.beginPath();
-    // ctx.arc(cp2.x, cp2.y, pointRadius, 0, 2 * Math.PI);
-    // ctx.stroke();
-    // ctx.beginPath();
-    // ctx.arc(end.x, end.y, pointRadius, 0, 2 * Math.PI);
-    // ctx.stroke();
   }
 
-  /** #Draw CorONaL MaSs ejECtiOn duuUUuUUddE */
-  function drawCME(
-    origin: Vec2,
-    point: Vec2,
-    curveColor = "cyan",
-    curveFill?: string
-  ) {
+  /** #Draw #CME CorONaL MaSs ejECtiOn duuUUuUUddE */
+  function drawCME(origin: Vec2, point: Vec2, color: string, size: number) {
     // Draw bezier curve
-    ctx.strokeStyle = curveColor;
+    ctx.strokeStyle = color;
     ctx.beginPath();
     ctx.moveTo(origin.x, origin.y);
     ctx.lineTo(point.x, point.y);
     // Draw
-    drawCenteredPoint(point, 4, curveFill);
-    if (curveFill) {
-      ctx.fillStyle = curveFill;
+    drawCenteredPoint(point, size, color);
+    if (color) {
+      ctx.fillStyle = color;
       ctx.fill();
     }
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = curveColor;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = color;
     ctx.stroke();
   }
 
@@ -189,8 +169,13 @@ function frameHandler(
   }
 
   // grab some frequencies and mirror them
-  const frequencies = Array.from(frequency.slice(0, rayCount / 2));
-  frequencies.push(...frequencies.slice());
+  const frequencies = Array.from(frequency.slice(0, rayCount));
+  // frequencies.push(...frequencies.slice());
+
+  // semi-randomly distribute rays
+  for (let idx = 0; idx < rayCount / 2; idx++) {
+    frequencies.push(...frequencies.splice((idx * 7) % 12, 1));
+  }
 
   /** #Draw a ray given polar coordinates */
   function drawRay(
@@ -237,6 +222,7 @@ function frameHandler(
   // Draw the core portal array
   ctx.beginPath();
 
+  // #Calculate #hues
   const hues: number[] = Array.from(
     { length: rayCount / 2 },
     (_, idx) => hueShift + (idx * hueSpread) / (rayCount / 2)
@@ -245,7 +231,6 @@ function frameHandler(
 
   function getHslForRay(idx: number): { h: number; s: number; l: number } {
     // TODO make the hue "wrap" around the spread
-    const hue = hueShift + (idx * hueSpread) / rayCount;
     return { h: hues[idx], s: 50, l: 50 };
   }
 
@@ -258,44 +243,72 @@ function frameHandler(
     return `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
   }
 
-  // calculate radial velocity for each frequency
+  // #Calculate #flare velocity for each frequency
   frequencies.forEach((f, idx) => {
     const velocity: number = (f - lastFreqMags[idx]) / deltaTime;
     if (velocity > flareVelThreshold) {
       const { r, theta } = corePortalArray[idx];
+      const hsl = getHslForRay(idx);
       flares.push({
-        velocity: velocity * flareVelScalar,
+        velocity: velocity * flareVelMult,
         point: { r, theta: theta + rotation },
-        hsl: getHslForRay(idx)
+        hsl
+      });
+      // add #CME's
+      const thetaDiff = Math.random() * rayWidth - rayWidth / 2;
+      // TODO generate number of CME's and sizeMult based on velocity
+      cmes.push({
+        radial: { r: 0, theta: theta + thetaDiff },
+        velocity: Math.max(velocity, cmeVelMin) + Math.random() * cmeVelMult,
+        hsl,
+        sizeMult: 5
       });
     }
   });
 
-  // #Draw Flares
+  // #Draw #Flares
+  const expiredFlareIdxs: number[] = [];
   flares.forEach((ray, idx) => {
-    if (ray.point?.r && ray.point?.r > maxRayLength) {
-      ray.point = { r: 0, theta: 0 };
-      ray.velocity = 0;
+    if (ray.point?.r > maxRayLength) {
+      expiredFlareIdxs.push(idx);
+      return;
     }
-    // if ray is active, draw it
-    if (ray.point && ray.velocity > 0) {
-      // get color - same for fill and stroke
-      const color = makeColorStyleString(
-        ray.hsl.h,
-        ray.hsl.s,
-        50 - (50 * ray.point.r) / maxRayLength,
-        1 - ray.point.r / maxRayLength
-      );
+    // get color - same for fill and stroke
+    const color = makeColorStyleString(
+      ray.hsl.h,
+      ray.hsl.s,
+      50, // - (50 * ray.point.r) / maxRayLength,
+      1 - ray.point.r / maxRayLength
+    );
 
-      // draw the ray
-      drawRay(ray.point, color, color, flareWidth);
-      // draw CME if over velocity threshold
-      if (ray.velocity > cmeVelThreshold) {
-        drawCME(center, polarToCartesian(ray.point), color, 4);
-      }
-      ray.point.r += ray.velocity;
-    }
+    // draw the ray
+    drawRay(ray.point, color, color, flareWidth);
+    // draw CME if over velocity threshold
+    ray.point.r += ray.velocity;
   });
+  expiredFlareIdxs.forEach(idx => flares.splice(idx, 1));
+
+  // #Draw #CME's
+  const expiredCmeIdxs: number[] = [];
+  cmes.forEach((cme, idx) => {
+    // if cme is active, draw it
+    if (cme.radial.r > maxRayLength) {
+      expiredCmeIdxs.push(idx);
+      return;
+    }
+    const distanceMult = cme.radial.r / maxRayLength;
+    drawCME(
+      center,
+      polarToCartesian({
+        r: cme.radial.r,
+        theta: cme.radial.theta * (1 + Math.sin(distanceMult / 2) / 2)
+      }),
+      makeColorStyleString(cme.hsl.h, cme.hsl.s, cme.hsl.l, 1 - distanceMult),
+      distanceMult * 40
+    );
+    cme.radial.r += (1 - distanceMult) * cme.velocity;
+  });
+  expiredCmeIdxs.forEach(idx => cmes.splice(idx, 1));
 
   /** #Translate rotate the canvas after drawing flares
    * so they maintain their angular position */
