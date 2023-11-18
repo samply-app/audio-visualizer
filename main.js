@@ -1,5 +1,6 @@
 let lastWidth = 0;
 let lastHeight = 0;
+
 function updateCanvasContext(context) {
   const canvas = context.canvas;
   const newWidth = canvas.clientWidth * devicePixelRatio;
@@ -40,7 +41,7 @@ window.onload = function() {
       var bufferLength = analyser.frequencyBinCount;
       var dataArray = new Uint8Array(bufferLength);
 
-      function draw() {
+      function render() {
           analyser.getByteFrequencyData(dataArray);          
 
           ctx.clearRect(0, 0, visualization.width, visualization.height);          
@@ -65,7 +66,7 @@ window.onload = function() {
           requestAnimationFrame(draw);
       }
 
-      draw();
+      render();
   }
 
   // Handle file input change
