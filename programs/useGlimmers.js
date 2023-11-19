@@ -7,8 +7,9 @@ function getPosition(index) {
 function createGlimmer() {
   
   const colorLow = { r: 0, g: 43, b: 65, a: 0 }
-  const colorHigh = { r: 186, g: 230, b: 253, a: 1 }
+  const colorHigh = { r: 0, g: 230, b: 253, a: 1 }
   const radius = 1; // max radius of glimmer
+  const lifetime = 200; // frames
   
   let alive = false;
   let time = 0; // time since first update (frames)
@@ -35,15 +36,19 @@ function createGlimmer() {
     Math.sin(-13.0 * (t + 1.0) * Math.PI / 2) * Math.pow(2.0, -10.0 * t) + 1.0;
   }
 
+  function parabola(t) {
+    return Math.pow(4 * t * (1 - t), 0.5);
+  }
+
   /**
    * Linear interpolation between two colors based
    * on energy [0, 1]
    * @param {*} energy 
    */
   function getColor() {
-    const r = Math.round(lerp(colorLow.r, colorHigh.r, ease(energy)));
-    const g = Math.round(lerp(colorLow.g, colorHigh.g, ease(energy)));
-    const b = Math.round(lerp(colorLow.b, colorHigh.b, ease(energy)));
+    const r = Math.round(lerp(colorLow.r, colorHigh.r, parabola(energy)));
+    const g = Math.round(lerp(colorLow.g, colorHigh.g, parabola(energy)));
+    const b = Math.round(lerp(colorLow.b, colorHigh.b, parabola(energy)));
     const a = 1; // Math.round(lerp(0, 1, ease(energy)));
     return `rgba(${r}, ${g}, ${b}, ${a})`;
   }
@@ -56,7 +61,7 @@ function createGlimmer() {
   function update() {
     if(alive) {
       time += 1;
-      energy = time / 100;
+      energy = time / lifetime;
     }
   }
 
@@ -76,7 +81,7 @@ function createGlimmer() {
     ctx.arc(x, y, lerp(0, 8, energy * radius), 0, 2 * Math.PI);
     ctx.fill();
 
-    if(time > 100) alive = false;
+    if(time > lifetime) alive = false;
   }
 
   return {
