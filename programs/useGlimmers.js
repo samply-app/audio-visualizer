@@ -1,4 +1,4 @@
-function fibonacciSpiralPoint(index, spacing = 10, radius = 2) {
+function fibonacciSpiralPoint(index, spacing = 10, radius = 10) {
   if (index < 0) {
     throw new Error("Index must be a non-negative integer");
   }
@@ -92,6 +92,10 @@ function createGlimmer() {
 const glimmer1 = createGlimmer();
 const glimmer2 = createGlimmer();
 const glimmer3 = createGlimmer();
+const glimmer4 = createGlimmer();
+const glimmer5 = createGlimmer();
+const glimmer6 = createGlimmer();
+const glimmer7 = createGlimmer();
 
 export default function useGlimmers() {
   let time = 0;
@@ -122,6 +126,26 @@ export default function useGlimmers() {
     glimmer3.setPosition(origin.x + xFib3, origin.y + yFib3);
     glimmer3.draw(ctx);
     glimmer3.update();
+
+    const { x: xFib4, y: yFib4 } = fibonacciSpiralPoint(3);
+    glimmer4.setPosition(origin.x + xFib4, origin.y + yFib4);
+    glimmer4.draw(ctx);
+    glimmer4.update();
+
+    const { x: xFib5, y: yFib5 } = fibonacciSpiralPoint(4);
+    glimmer5.setPosition(origin.x + xFib5, origin.y + yFib5);
+    glimmer5.draw(ctx);
+    glimmer5.update();
+
+    const { x: xFib6, y: yFib6 } = fibonacciSpiralPoint(5);
+    glimmer6.setPosition(origin.x + xFib6, origin.y + yFib6);
+    glimmer6.draw(ctx);
+    glimmer6.update();
+
+    const { x: xFib7, y: yFib7 } = fibonacciSpiralPoint(6);
+    glimmer7.setPosition(origin.x + xFib7, origin.y + yFib7);
+    glimmer7.draw(ctx);
+    glimmer7.update();
 
     time += 1;
   };
