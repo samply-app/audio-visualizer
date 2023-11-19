@@ -10,10 +10,11 @@ function createGlimmer() {
   const colorHigh = { r: 186, g: 230, b: 253, a: 1 }
   const radius = 1; // max radius of glimmer
   
+  let alive = false;
   let time = 0; // time since first update (frames)
   let x = 0;
   let y = 0;
-  let energy = 0;
+  let energy = 0;  
   
   /**
    * Linearly interpolate between two values
@@ -30,16 +31,20 @@ function createGlimmer() {
     return t * t * t * t * t;
   }
 
+  function elasticOut(t) {
+    Math.sin(-13.0 * (t + 1.0) * Math.PI / 2) * Math.pow(2.0, -10.0 * t) + 1.0;
+  }
+
   /**
    * Linear interpolation between two colors based
    * on energy [0, 1]
    * @param {*} energy 
    */
   function getColor() {
-    const r = Math.round(lerp(colorLow.r, colorHigh.r, energy));
-    const g = Math.round(lerp(colorLow.g, colorHigh.g, energy));
-    const b = Math.round(lerp(colorLow.b, colorHigh.b, energy));
-    const a = lerp(colorLow.a, colorHigh.a, ease(energy));
+    const r = Math.round(lerp(colorLow.r, colorHigh.r, ease(energy)));
+    const g = Math.round(lerp(colorLow.g, colorHigh.g, ease(energy)));
+    const b = Math.round(lerp(colorLow.b, colorHigh.b, ease(energy)));
+    const a = 1; // Math.round(lerp(0, 1, ease(energy)));
     return `rgba(${r}, ${g}, ${b}, ${a})`;
   }
 
@@ -49,8 +54,14 @@ function createGlimmer() {
   }
 
   function update() {
-    time += 1;
-    energy = 1;
+    if(alive) {
+      time += 1;
+      energy = time / 100;
+    }
+  }
+
+  function start() {
+    alive = true;
   }
 
   function reset(){
@@ -65,12 +76,13 @@ function createGlimmer() {
     ctx.arc(x, y, lerp(0, 8, energy * radius), 0, 2 * Math.PI);
     ctx.fill();
 
-    if(time > 100) reset();
+    if(time > 100) alive = false;
   }
 
   return {
     setPosition,
     update,
+    start,
     reset,
     draw
   }
@@ -94,6 +106,7 @@ export default function useGlimmers() {
       glimmer.setPosition(origin.x + xFib, origin.y + yFib);
       glimmer.draw(ctx);
       glimmer.update();
+      if(i === time) glimmer.start();
     }
 
     time += 1;
