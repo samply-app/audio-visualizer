@@ -12,20 +12,6 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
   let y = 0;
   let energy = 0;  
 
-  /**
-   * Linear interpolation between two colors based
-   * on energy [0, 1]
-   * @param {*} energy 
-   */
-  function getColor() {
-    const t = parabola(energy);
-    const r = Math.round(lerp(colorLow.r, colorHigh.r, t));
-    const g = Math.round(lerp(colorLow.g, colorHigh.g, t));
-    const b = Math.round(lerp(colorLow.b, colorHigh.b, t));
-    const a = lerp(colorLow.a, colorHigh.a, t);
-    return `rgba(${r}, ${g}, ${b}, ${a})`;
-  }
-
   function setPosition(_x, _y) {
     x = _x; 
     y = _y;
@@ -43,6 +29,7 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
   }
 
   function start(_delay = 0) {
+    if(alive) return;
     alive = true;
     time = 0;
     energy = 0;
@@ -50,7 +37,28 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
   }
 
   function draw(ctx) {
-    ctx.fillStyle = getColor();
+    if(!alive) return;
+    const t = parabola(energy);
+    
+    const alpha = lerp(colorLow.a, colorHigh.a, t);
+    const glowColor = `rgba(${colorLow.r}, ${colorLow.g}, ${colorLow.b}, ${isNaN(alpha) ? 0 : alpha})`;
+    const glowRadius = 32;
+
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius * glowRadius);
+    gradient.addColorStop(0, glowColor);
+    gradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(x, y, lerp(0, radius * glowRadius, parabola(energy)), 0, 2 * Math.PI);
+    ctx.fill();
+
+    const r = Math.round(lerp(colorLow.r, colorHigh.r, t));
+    const g = Math.round(lerp(colorLow.g, colorHigh.g, t));
+    const b = Math.round(lerp(colorLow.b, colorHigh.b, t));
+    const a = lerp(colorLow.a, colorHigh.a, t);
+    const glintColor = `rgba(${r}, ${g}, ${b}, ${a})`;
+
+    ctx.fillStyle = glintColor;
     ctx.beginPath();
     ctx.arc(x, y, lerp(0, radius, parabola(energy)), 0, 2 * Math.PI);
     ctx.fill();
