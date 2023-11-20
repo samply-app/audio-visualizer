@@ -1,4 +1,4 @@
-import useGlimmers from './programs/useGlimmers.js';
+import useGlimmers from './programs/useGlimmers/index.js';
 import useHistogram from './programs/useHistogram.js';
 import useTestChart from './programs/useTestChart.js';
 
