@@ -1,20 +1,25 @@
 import createGlimmer from "./createGlimmer.js";
-
-function getPosition(index) {
-  const angle = index / 0.9;
-  const x = Math.round(Math.cos(angle) * index * 10);
-  const y = Math.round(Math.sin(angle) * index * 10);
-  return { x, y };
-}
+import lerp from './lerp.js';
 
 export default function useGlimmers() {
   let time = 0;
   const glimmers = [];
 
-  const startColor = { r: 6, g: 43, b: 65, a: 1 }
-  const endColor = { r: 186, g: 230, b: 253, a: 1 }
-  for(let i = 0; i < 100; i++) {
+  const numberOfGlimmers = 100;
+
+  // Initialize glimmers
+  for(let i = 0; i < numberOfGlimmers; i++) {
+    const startColor = { r: 6, g: 43, b: 65, a: 0 }
+    const endColor = { r: 186, g: 230, b: 253, a: (numberOfGlimmers - i) / numberOfGlimmers  }
     glimmers.push(createGlimmer(startColor, endColor));
+  }
+
+  function getPosition(index) {
+    const t = Math.min(time / 10000, 1);    
+    const angle = index / lerp(0.8, 0.99, t);
+    const x = Math.round(Math.cos(angle) * index * 10);
+    const y = Math.round(Math.sin(angle) * index * 10);
+    return { x, y };
   }
 
   function drawFrame(ctx, width, height) {    
@@ -27,13 +32,20 @@ export default function useGlimmers() {
       glimmer.setPosition(origin.x + xFib, origin.y + yFib);
       glimmer.draw(ctx);
       glimmer.update();
-      if(i === time) glimmer.start();
     }
 
     time += 1;
   };
+
+  function trigger() {
+    for(let i = 0; i < glimmers.length; i++) {
+      const glimmer = glimmers[i];
+      glimmer.start(i);
+    }
+  }
   
   return {
     drawFrame,
+    trigger,
   }
 }

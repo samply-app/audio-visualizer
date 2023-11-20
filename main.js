@@ -2,6 +2,9 @@ import useGlimmers from './programs/useGlimmers/index.js';
 import useHistogram from './programs/useHistogram.js';
 import useTestChart from './programs/useTestChart.js';
 
+const showFPS = true;
+const fpsThreshold = 40;
+
 let lastWidth = 0;
 let lastHeight = 0;
 
@@ -37,14 +40,21 @@ window.onload = function () {
   // Connect analyzer to audio context destination
   analyser.connect(audioContext.destination);
 
+  const glimmers = useGlimmers();
+  const histogram = useHistogram();
+  const testChart = useTestChart();
+
+  document.addEventListener('click', () => {
+    glimmers.trigger();
+  
+  })
+
   // Visualization function
   function visualize() {
     var bufferLength = analyser.frequencyBinCount;
     var dataArray = new Uint8Array(bufferLength);
 
-    const glimmers = useGlimmers();
-    const histogram = useHistogram();
-    const testChart = useTestChart();
+    let lastFrameTime = Date.now();
 
     function render() {    
       analyser.getByteFrequencyData(dataArray);
@@ -58,10 +68,23 @@ window.onload = function () {
 
       // ----------------------------------------------------------------------------
 
+      if (showFPS) {
+        const now = Date.now();
+        const dt = now - lastFrameTime;
+        lastFrameTime = now;
+        const fps = 1000 / dt;
+        ctx.fillStyle = fps > fpsThreshold ? 'green' : 'red';
+        ctx.fillRect(0, visualization.height - 52, 132, 52);
+
+        ctx.fillStyle = 'white';
+        ctx.font = '24px monospace';
+        ctx.fillText(`FPS: ${Math.round(fps)}`, 16, visualization.height - 16);
+      }
+
       requestAnimationFrame(render);
     }
 
-    render();
+    render();    
   }
 
 

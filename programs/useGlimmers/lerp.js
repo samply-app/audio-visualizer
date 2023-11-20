@@ -1,4 +1,6 @@
-  /**
+// Lerping is cool: https://youtu.be/YJB1QnEmlTs?si=g8Wz_LmLqZ4hZW1_
+
+/**
    * Linearly interpolate between two values
    * @param {*} a 
    * @param {*} b 
