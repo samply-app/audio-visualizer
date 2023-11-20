@@ -1,11 +1,9 @@
-import lerp, { ease } from './lerp.js';
+import lerp, { ease, easeInOutQuadratic, parabola } from './lerp.js';
 
-export default function createGlimmer() {
+export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, colorHigh = { r: 0, g: 0, b: 255, a: 1 } ) {
   
-  const colorLow = { r: 255, g: 0, b: 0, a: 1 }
-  const colorHigh = { r: 0, g: 0, b: 255, a: 1 }
-  const radius = 16; // max radius of glimmer
-  const lifetime = 30; // frames
+  const radius = 4; // max radius of glimmer
+  const lifetime = 50; // frames
   
   let alive = false;
   let time = 0; // time since first update (frames)
@@ -19,10 +17,11 @@ export default function createGlimmer() {
    * @param {*} energy 
    */
   function getColor() {
-    const r = Math.round(lerp(colorLow.r, colorHigh.r, energy));
-    const g = Math.round(lerp(colorLow.g, colorHigh.g, energy));
-    const b = Math.round(lerp(colorLow.b, colorHigh.b, energy));
-    const a = lerp(colorLow.a, colorHigh.a, energy);
+    const t = parabola(energy);
+    const r = Math.round(lerp(colorLow.r, colorHigh.r, t));
+    const g = Math.round(lerp(colorLow.g, colorHigh.g, t));
+    const b = Math.round(lerp(colorLow.b, colorHigh.b, t));
+    const a = lerp(colorLow.a, colorHigh.a, t);
     return `rgba(${r}, ${g}, ${b}, ${a})`;
   }
 
@@ -47,10 +46,11 @@ export default function createGlimmer() {
   function draw(ctx) {
     ctx.fillStyle = getColor();
     ctx.beginPath();
-    ctx.arc(x, y, radius * energy, 0, 2 * Math.PI);
+    ctx.arc(x, y, lerp(0, radius, parabola(energy)), 0, 2 * Math.PI);
     ctx.fill();
 
     if(time > lifetime) alive = false;
+    
   }
 
   return {

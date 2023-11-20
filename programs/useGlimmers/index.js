@@ -11,8 +11,10 @@ export default function useGlimmers() {
   let time = 0;
   const glimmers = [];
 
+  const startColor = { r: 6, g: 43, b: 65, a: 1 }
+  const endColor = { r: 186, g: 230, b: 253, a: 1 }
   for(let i = 0; i < 100; i++) {
-    glimmers.push(createGlimmer());
+    glimmers.push(createGlimmer(startColor, endColor));
   }
 
   function drawFrame(ctx, width, height) {    
