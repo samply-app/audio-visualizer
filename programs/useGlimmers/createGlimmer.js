@@ -4,12 +4,15 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
     
   const lifetime = 50; // frames
   
-  let alive = false;
+  let delayTime = 0; // frames
+  let reverseTime = 100
+  
   let time = 0; // time since first update (frames)
-  let delay = 0;
+  let alive = false;
+  
   let x = 0;
   let y = 0;
-  let energy = 0;  
+  let t = 0;  
 
   function setPosition(_x, _y) {
     x = _x; 
@@ -18,37 +21,37 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
 
   function update() {
     if (alive) {
-      if (time < delay) {
-        delay -= 1;
+      if (time < delayTime) {
+        delayTime -= 1;
         return;
       }
       time += 1;
-      energy = time / lifetime;
+      t = time / lifetime;
     }
   }
 
-  function start(_delay = 0) {
+  function trigger(_delay = 0) {
     if(alive) return;
     alive = true;
     time = 0;
-    energy = 0;
-    delay = _delay;
+    t = 0;
+    delayTime = _delay;
   }
 
   function drawSpecular(ctx) { 
     if(!alive) return;
-    const t = parabola(energy);
+    const p = parabola(t);
     const radius = 4;
 
-    const r = Math.round(lerp(colorLow.r, colorHigh.r, t));
-    const g = Math.round(lerp(colorLow.g, colorHigh.g, t));
-    const b = Math.round(lerp(colorLow.b, colorHigh.b, t));
-    const a = lerp(colorLow.a, colorHigh.a, t);
+    const r = Math.round(lerp(colorLow.r, colorHigh.r, p));
+    const g = Math.round(lerp(colorLow.g, colorHigh.g, p));
+    const b = Math.round(lerp(colorLow.b, colorHigh.b, p));
+    const a = lerp(colorLow.a, colorHigh.a, p);
     const glintColor = `rgba(${r}, ${g}, ${b}, ${a})`;
 
     ctx.fillStyle = glintColor;
     ctx.beginPath();
-    ctx.arc(x, y, lerp(0, radius, parabola(energy)), 0, 2 * Math.PI);
+    ctx.arc(x, y, lerp(0, radius, parabola(t)), 0, 2 * Math.PI);
     ctx.fill();
 
     if(time > lifetime) alive = false;
@@ -57,7 +60,7 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
 
   function drawGlow(ctx) {
     if(!alive) return;
-    const t = parabola(energy);  
+    const p = parabola(t);  
     const glowColor = `rgba(${colorLow.r}, ${colorLow.g}, ${colorLow.b}, ${0.1})`;
     const glowRadius = 256;
 
@@ -66,20 +69,20 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
     gradient.addColorStop(1, 'transparent');
     ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.arc(x, y, lerp(0, glowRadius, parabola(energy)), 0, 2 * Math.PI);
+    ctx.arc(x, y, lerp(0, glowRadius, parabola(t)), 0, 2 * Math.PI);
     ctx.fill();
   }
 
   function draw(ctx) {
     if(!alive) return;
-    const t = parabola(energy);  
-    drawGlow(ctx, t);
-    drawSpecular(ctx, t);    
+    const p = parabola(t);  
+    drawGlow(ctx, p);
+    drawSpecular(ctx, p);    
   }
 
   return {
     setPosition,
-    start,
+    trigger,
     update,    
     draw,
     drawGlow,
