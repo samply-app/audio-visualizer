@@ -48,7 +48,8 @@ export default function useGlimmers() {
   function trigger() {
     for(let i = 0; i < glimmers.length; i++) {
       const glimmer = glimmers[i];
-      glimmer.trigger(i);
+      const delayFactor = 2;
+      glimmer.trigger(i * delayFactor);
     }
   }
   

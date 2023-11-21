@@ -2,7 +2,7 @@ import lerp, { ease, easeInOutQuadratic, parabola } from './lerp.js';
 
 export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, colorHigh = { r: 0, g: 0, b: 255, a: 1 } ) {
     
-  const lifetime = 500; // frames
+  const lifetime = 100; // frames
   
   let delayTime = 0; // time until trigger occurs (frames)
   let reverseTime = 100
@@ -32,9 +32,9 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
   }
 
   function trigger(_delay = 0) {
-    time = 0;
-    t = 0;
+    resetTime();
     delayTime = _delay;
+
   }
 
   function drawSpecular(ctx) { 
