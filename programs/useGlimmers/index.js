@@ -26,12 +26,20 @@ export default function useGlimmers() {
 
     const origin = { x: width / 2, y: height / 2}
 
+    // Draw background images (glows)
     for(let i = 0; i < glimmers.length; i++) {
       const glimmer = glimmers[i];
       const { x: xFib, y: yFib } = getPosition(i);
       glimmer.setPosition(origin.x + xFib, origin.y + yFib);
-      glimmer.draw(ctx);
-      glimmer.update();
+      glimmer.drawGlow(ctx);
+    }
+
+    for(let i = 0; i < glimmers.length; i++) {
+      const glimmer = glimmers[i];
+      const { x: xFib, y: yFib } = getPosition(i);
+      glimmer.setPosition(origin.x + xFib, origin.y + yFib);
+      glimmer.drawSpecular(ctx);
+      glimmer.update(); // Only update once
     }
 
     time += 1;

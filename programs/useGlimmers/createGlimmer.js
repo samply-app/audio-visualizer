@@ -1,8 +1,7 @@
 import lerp, { ease, easeInOutQuadratic, parabola } from './lerp.js';
 
 export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, colorHigh = { r: 0, g: 0, b: 255, a: 1 } ) {
-  
-  const radius = 4; // max radius of glimmer
+    
   const lifetime = 50; // frames
   
   let alive = false;
@@ -36,21 +35,10 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
     delay = _delay;
   }
 
-  function draw(ctx) {
+  function drawSpecular(ctx) { 
     if(!alive) return;
     const t = parabola(energy);
-    
-    const alpha = lerp(colorLow.a, colorHigh.a, t);
-    const glowColor = `rgba(${colorLow.r}, ${colorLow.g}, ${colorLow.b}, ${isNaN(alpha) ? 0 : alpha})`;
-    const glowRadius = 32;
-
-    const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius * glowRadius);
-    gradient.addColorStop(0, glowColor);
-    gradient.addColorStop(1, 'transparent');
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(x, y, lerp(0, radius * glowRadius, parabola(energy)), 0, 2 * Math.PI);
-    ctx.fill();
+    const radius = 4;
 
     const r = Math.round(lerp(colorLow.r, colorHigh.r, t));
     const g = Math.round(lerp(colorLow.g, colorHigh.g, t));
@@ -67,10 +55,34 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
     
   }
 
+  function drawGlow(ctx) {
+    if(!alive) return;
+    const t = parabola(energy);  
+    const glowColor = `rgba(${colorLow.r}, ${colorLow.g}, ${colorLow.b}, ${0.1})`;
+    const glowRadius = 256;
+
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, glowRadius);
+    gradient.addColorStop(0, glowColor);
+    gradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(x, y, lerp(0, glowRadius, parabola(energy)), 0, 2 * Math.PI);
+    ctx.fill();
+  }
+
+  function draw(ctx) {
+    if(!alive) return;
+    const t = parabola(energy);  
+    drawGlow(ctx, t);
+    drawSpecular(ctx, t);    
+  }
+
   return {
     setPosition,
     start,
     update,    
-    draw
+    draw,
+    drawGlow,
+    drawSpecular,
   }
 }
