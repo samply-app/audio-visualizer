@@ -1,11 +1,14 @@
 import createGlimmer from "./createGlimmer.js";
 import lerp from './lerp.js';
+import useTransientDetector from "./useTransientDetector.js";
 
-export default function useGlimmers() {
+export default function useGlimmers(offsetX = 0, offsetY = 0) {
+  const transientDetector = useTransientDetector();
+
   let time = 0;
   const glimmers = [];
 
-  const numberOfGlimmers = 100;
+  const numberOfGlimmers = 1;
 
   // Initialize glimmers
   for(let i = 0; i < numberOfGlimmers; i++) {
@@ -22,9 +25,18 @@ export default function useGlimmers() {
     return { x, y };
   }
 
-  function drawFrame(ctx, width, height, frequencyData) {    
 
-    const origin = { x: width / 2, y: height / 2}
+  function trigger() {
+    for(let i = 0; i < glimmers.length; i++) {
+      const glimmer = glimmers[i];
+      const delayFactor = 1;
+      glimmer.trigger(i * delayFactor);
+    }
+  }
+
+  function drawFrame(ctx, width, height, frequencyData) {   
+
+    const origin = { x: (width / 2) + offsetX, y: (height / 2) + offsetY };
 
     // Draw background images (glows)
     for(let i = 0; i < glimmers.length; i++) {
@@ -44,17 +56,9 @@ export default function useGlimmers() {
 
     time += 1;
   };
-
-  function trigger() {
-    for(let i = 0; i < glimmers.length; i++) {
-      const glimmer = glimmers[i];
-      const delayFactor = 1;
-      glimmer.trigger(i * delayFactor);
-    }
-  }
   
   return {
-    drawFrame,
     trigger,
+    drawFrame,
   }
 }

@@ -1,10 +1,5 @@
-export default function useTransientDetector() {
-  const threshold = 4;
-
-  const smoothingFactor =  0.9;
+export default function useTransientDetector(threshold = 1.5, smoothingFactor = 0.9, peakDecayFactor = 0.9) {
   let smoothedAmplitude = 0;
-
-  const peakDecayFactor = 0.99;
   let peakAmplitude = 0;
 
  /**
