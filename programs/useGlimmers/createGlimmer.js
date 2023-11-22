@@ -2,12 +2,11 @@ import lerp, { ease, easeInOutQuadratic, parabola } from './lerp.js';
 
 export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, colorHigh = { r: 0, g: 0, b: 255, a: 1 } ) {
     
-  const lifetime = 100; // frames
+  const lifetime = 50; // frames
   
-  let delayTime = 0; // time until trigger occurs (frames)
-  let reverseTime = 100
+  const triggerQueue = []; // List of times to trigger (frames)
   
-  let time = 0; // time since first update (frames)
+  let time = lifetime; // time since first update (frames)
   
   let x = 0;
   let y = 0;
@@ -23,18 +22,30 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
   }
 
   function update() {
-    if (delayTime) return delayTime -= 1; // Wait until delay is over to
     if(time !== lifetime) {
       time += 1;
-    }
-    
+    }    
     t = (lifetime - time) / lifetime;
+
+    // Update trigger queue
+    if (triggerQueue.length) {
+      for(let i = 0; i < triggerQueue.length; i++) {
+        const triggerTime = triggerQueue[i];
+        if (triggerTime <= 0) {
+          triggerQueue.splice(i, 1); // Remove from queue
+          resetTime();
+        } else {
+          triggerQueue[i] -= 1;
+        }
+      }
+    }
   }
 
   function trigger(_delay = 0) {
-    resetTime();
-    delayTime = _delay;
-
+    if (_delay) return triggerQueue.push(_delay);
+    else {
+      resetTime();
+    }
   }
 
   function drawSpecular(ctx) { 
