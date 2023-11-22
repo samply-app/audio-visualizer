@@ -13,7 +13,11 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
   let time = 0;
   const glimmers = [];
 
-  const numberOfGlimmers = 200;
+  const numberOfGlimmers = 400;
+
+  const backgroundColor = { r: 6, g: 43, b: 65, a: 0.5 };
+  const backgroundSmoothingFactor = 0.9;
+  let backgroundAmplitude = 0;
 
   // Initialize glimmers
   for(let i = 0; i < numberOfGlimmers; i++) {
@@ -25,8 +29,9 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
   function getPosition(index) {
     const t = Math.min(time / 10000, 1);    
     const angle = index / lerp(0.8, 0.99, t);
-    const x = Math.round(Math.cos(angle) * index * 10);
-    const y = Math.round(Math.sin(angle) * index * 10);
+    const distance = 5;
+    const x = Math.cos(angle) * index * distance;
+    const y = Math.sin(angle) * index * distance;
     return { x, y };
   }
 
@@ -47,7 +52,14 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
 
     const origin = { x: (width / 2) + offsetX, y: (height / 2) + offsetY };
 
-    // Draw background images (glows)
+    // Draw background
+    const highFrequencies = frequencyUtils.getRange(frequencyData, 1000, 20000);
+    const highFrequencyEnergy = highFrequencies.reduce((acc, val) => acc + val, 0) / highFrequencies.length;
+    backgroundAmplitude = backgroundAmplitude * backgroundSmoothingFactor + (highFrequencyEnergy / 255) * (1 - backgroundSmoothingFactor);
+    ctx.fillStyle = `rgba(${backgroundColor.r}, ${backgroundColor.g}, ${backgroundColor.b}, ${backgroundColor.a * backgroundAmplitude})`;
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw glows
     for(let i = 0; i < glimmers.length; i++) {
       const glimmer = glimmers[i];
       const { x: xFib, y: yFib } = getPosition(i);
@@ -55,6 +67,7 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
       glimmer.drawGlow(ctx);
     }
 
+    // Draw speculars
     for(let i = 0; i < glimmers.length; i++) {
       const glimmer = glimmers[i];
       const { x: xFib, y: yFib } = getPosition(i);
