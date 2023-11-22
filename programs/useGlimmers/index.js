@@ -10,7 +10,7 @@ export default function useGlimmers() {
   // Initialize glimmers
   for(let i = 0; i < numberOfGlimmers; i++) {
     const startColor = { r: 6, g: 43, b: 65, a: 0 }
-    const endColor = { r: 186, g: 230, b: 253, a: (numberOfGlimmers - i) / numberOfGlimmers  }
+    const endColor = { r: 186, g: 230, b: 253, a: lerp(1, 0.5, i / numberOfGlimmers)  }
     glimmers.push(createGlimmer(startColor, endColor));
   }
 
@@ -22,7 +22,7 @@ export default function useGlimmers() {
     return { x, y };
   }
 
-  function drawFrame(ctx, width, height) {    
+  function drawFrame(ctx, width, height, frequencyData) {    
 
     const origin = { x: width / 2, y: height / 2}
 

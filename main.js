@@ -1,12 +1,15 @@
 import useGlimmers from './programs/useGlimmers/index.js';
 import useHistogram from './programs/useHistogram.js';
 import useTestChart from './programs/useTestChart.js';
+import useTransientDetector from './programs/useGlimmers/useTransientDetector.js';
 
 const showFPS = true;
 const fpsThreshold = 40;
 
 let lastWidth = 0;
 let lastHeight = 0;
+
+const transientDetector = useTransientDetector();
 
 function updateCanvasContext(context) {
   const canvas = context.canvas;
@@ -52,19 +55,23 @@ window.onload = function () {
   // Visualization function
   function visualize() {
     var bufferLength = analyser.frequencyBinCount;
-    var dataArray = new Uint8Array(bufferLength);
+    var frequencyData = new Uint8Array(bufferLength);
 
     let lastFrameTime = Date.now();
 
     function render() {    
-      analyser.getByteFrequencyData(dataArray);
+      analyser.getByteFrequencyData(frequencyData);
       updateCanvasContext(ctx);
       ctx.clearRect(0, 0, visualization.width, visualization.height);
 
       // PLACE VISUALIZATION CODE HERE ----------------------------------------------
 
-      glimmers.drawFrame(ctx, visualization.width, visualization.height);
-      histogram.drawFrame(ctx, visualization.width, visualization.height, dataArray);
+      if(transientDetector.detect(frequencyData.slice(0, 5))) {
+        glimmers.trigger();
+      }
+
+      glimmers.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+      // histogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
 
       // ----------------------------------------------------------------------------
 
