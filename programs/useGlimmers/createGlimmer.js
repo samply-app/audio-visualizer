@@ -67,12 +67,13 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
 
   function drawGlow(ctx) {
     const p = t;
-    const glowColor = `rgba(${colorLow.r}, ${colorLow.g}, ${colorLow.b}, ${0.1})`;
+    const glowColorInner = `rgba(${colorLow.r}, ${colorLow.g}, ${colorLow.b}, ${0.1})`;
+    const glowColorOuter = `rgba(${colorLow.r}, ${colorLow.g}, ${colorLow.b}, ${0})`;
     const glowRadius = 256;
 
-    const gradient = ctx.createRadialGradient(x, y, 0, x, y, glowRadius);
-    gradient.addColorStop(0, glowColor);
-    gradient.addColorStop(1, 'transparent');
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, lerp(0, glowRadius, p));
+    gradient.addColorStop(0, glowColorInner);
+    gradient.addColorStop(1, glowColorOuter);
     ctx.fillStyle = gradient;
     ctx.beginPath();
     ctx.arc(x, y, lerp(0, glowRadius, p), 0, 2 * Math.PI);

@@ -10,10 +10,6 @@ const fpsThreshold = 40;
 let lastWidth = 0;
 let lastHeight = 0;
 
-const transientDetector = useTransientDetector(1.5, 0.9, 0.99);
-const transientDetector2 = useTransientDetector(4, 0.5, 0.99);
-const transientDetector3 = useTransientDetector(1.5, 0.9, 0.99);
-
 function updateCanvasContext(context) {
   const canvas = context.canvas;
   const newWidth = canvas.clientWidth * devicePixelRatio;
@@ -46,17 +42,12 @@ window.onload = function () {
   // Connect analyzer to audio context destination
   analyser.connect(audioContext.destination);
 
-  const glimmers = useGlimmers(-100, -600);
-  const glimmers2 = useGlimmers(0, -600);
-  const glimmers3 = useGlimmers(100, -600);
+  const glimmers = useGlimmers(0, 0, audioContext.sampleRate);
   const histogram = useHistogram();
   const testChart = useTestChart();
-  const frequencyUtils = useFrequencyUtils(audioContext.sampleRate);
 
   document.addEventListener('click', () => {
     glimmers.trigger();
-    glimmers2.trigger();
-    glimmers3.trigger();
   })
 
   // Visualization function
@@ -73,22 +64,8 @@ window.onload = function () {
 
       // PLACE VISUALIZATION CODE HERE ----------------------------------------------
 
-      if(transientDetector.detect(frequencyUtils.getRange(frequencyData, 0, 100))) {
-        glimmers.trigger();
-      }
-
-      if(transientDetector2.detect(frequencyUtils.getRange(frequencyData, 100, 4000))) {
-        glimmers2.trigger();
-      }
-
-      if(transientDetector3.detect(frequencyUtils.getRange(frequencyData, 4000, 20000))) {
-        glimmers3.trigger();
-      }
-
       glimmers.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
-      glimmers2.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
-      glimmers3.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
-      histogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+      // histogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
 
       // ----------------------------------------------------------------------------
 

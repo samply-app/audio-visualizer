@@ -1,14 +1,19 @@
 import createGlimmer from "./createGlimmer.js";
 import lerp from './lerp.js';
 import useTransientDetector from "./useTransientDetector.js";
+import useFrequencyUtils from "./useFrequencyUtils.js";
 
-export default function useGlimmers(offsetX = 0, offsetY = 0) {
-  const transientDetector = useTransientDetector();
+export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
+  const transientDetectorLow = useTransientDetector(1.5, 0.9, 0.99);
+  const transientDetectorMid = useTransientDetector(4, 0.5, 0.99);
+  const transientDetectorHigh = useTransientDetector(1.5, 0.9, 0.99);
+
+  const frequencyUtils = useFrequencyUtils(sampleRate);
 
   let time = 0;
   const glimmers = [];
 
-  const numberOfGlimmers = 1;
+  const numberOfGlimmers = 200;
 
   // Initialize glimmers
   for(let i = 0; i < numberOfGlimmers; i++) {
@@ -29,12 +34,16 @@ export default function useGlimmers(offsetX = 0, offsetY = 0) {
   function trigger() {
     for(let i = 0; i < glimmers.length; i++) {
       const glimmer = glimmers[i];
-      const delayFactor = 1;
+      const delayFactor = 0.25;
       glimmer.trigger(i * delayFactor);
     }
   }
 
   function drawFrame(ctx, width, height, frequencyData) {   
+
+    // Detect transients and trigger animations
+    const lowTransient = transientDetectorLow.detect(frequencyUtils.getRange(frequencyData, 0, 100));
+    if(lowTransient) trigger();
 
     const origin = { x: (width / 2) + offsetX, y: (height / 2) + offsetY };
 
