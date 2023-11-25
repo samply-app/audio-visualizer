@@ -15,15 +15,17 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
   const NUMBER_OF_GLIMMERS = 400;
 
   const BG_COLOR_LOW = { r: 0, g: 0, b: 0, a: 1 };
-  const BG_COLOR_HI = { r: 6, g: 43, b: 65, a: 1 };
+  const BG_COLOR_HI = { r: 255, g: 43, b: 255, a: 1 };
 
-  const GLIMMER_LIFETIME = 400; // frames
   const GLIMMER_COLOR_LOW = { r: 6, g: 43, b: 65, a: 1 };
   const GLIMMER_COLOR_HIGH = { r: 186, g: 230, b: 253, a: 1 };
 
   const backgroundSmoothingFactor = 0.9;
-  
-  let backgroundAmplitude = 0;
+
+  let lowEnergy = 0; // 0 - 1
+  let midEnergy = 0;
+  let highEnergy = 0;
+
 
   // Initialize glimmers
   const glimmers = [];  
@@ -60,10 +62,14 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
     const origin = { x: (width / 2) + offsetX, y: (height / 2) + offsetY };
 
     // Draw background
-    const highFrequencies = frequencyUtils.getRange(frequencyData, 1000, 20000);
+    const highFrequencies = frequencyUtils.getRange(frequencyData, 5000, 20000);
     const highFrequencyEnergy = highFrequencies.reduce((acc, val) => acc + val, 0) / highFrequencies.length;
-    backgroundAmplitude = backgroundAmplitude * backgroundSmoothingFactor + (highFrequencyEnergy / 255) * (1 - backgroundSmoothingFactor);
-    ctx.fillStyle = `rgba(${BG_COLOR_HI.r}, ${BG_COLOR_HI.g}, ${BG_COLOR_HI.b}, ${BG_COLOR_HI.a * backgroundAmplitude})`;
+    const highFrequencyEnergyNormalized = highFrequencyEnergy / 255;
+
+    const HIGH_FREQUENCY_SMOOTHING_FACTOR = 0.9;
+    highEnergy = highFrequencyEnergyNormalized * HIGH_FREQUENCY_SMOOTHING_FACTOR;
+
+    ctx.fillStyle = `rgba(${BG_COLOR_HI.r}, ${BG_COLOR_HI.g}, ${BG_COLOR_HI.b}, ${BG_COLOR_HI.a * highEnergy})`;
     ctx.fillRect(0, 0, width, height);
 
     // Draw glows
@@ -76,9 +82,7 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
       const tDistance = Math.min(distanceFromOrigin / (width / 2), 1); // 0 - 1
       
       glimmer.setPosition(origin.x + xFib, origin.y + yFib);
-      glimmer.setLifetime(GLIMMER_LIFETIME);
-           
-      const alpha = lerp(1, 0.5, tDistance); // Vignette
+      const alpha = lerp(1, 0, tDistance); // Vignette
       glimmer.setColorLow({ ...GLIMMER_COLOR_LOW, a: alpha });
       glimmer.setColorHigh({ ...GLIMMER_COLOR_HIGH, a: alpha });
       

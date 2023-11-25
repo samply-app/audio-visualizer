@@ -2,7 +2,7 @@ import lerp, { ease, easeInOutQuadratic, parabola } from './lerp.js';
 
 export default function createGlimmer() {
     
-  let lifetime = 400;
+  let lifetime = 50;
   let colorLow = { r: 0, g: 0, b: 0, a: 0 };
   let colorHigh = { r: 0, g: 0, b: 0, a: 0 };
   
@@ -21,10 +21,6 @@ export default function createGlimmer() {
 
   function resetTime() {
     time = 0;
-  }
-
-  function setLifetime(_lifetime) {
-    lifetime = _lifetime;
   }
 
   function setColorLow(_colorLow) {
@@ -64,7 +60,7 @@ export default function createGlimmer() {
   }
 
   function drawSpecular(ctx) { 
-    const p = ease(t);
+    const p = easeInOutQuadratic(t);
     const radius = 4;
 
     const r = Math.round(lerp(colorLow.r, colorHigh.r, p));
@@ -108,7 +104,6 @@ export default function createGlimmer() {
     draw,
     drawGlow,
     drawSpecular,
-    setLifetime,
     setColorLow,
     setColorHigh,
   }
