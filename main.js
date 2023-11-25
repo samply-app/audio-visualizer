@@ -4,8 +4,8 @@ import useTestChart from './programs/useTestChart.js';
 import useTransientDetector from './programs/useGlimmers/useTransientDetector.js';
 import useFrequencyUtils from './programs/useGlimmers/useFrequencyUtils.js';
 
-const showFPS = true;
-const fpsThreshold = 40;
+const SHOW_FRAME_RATE = false;
+const FPS_THRESHOLD = 40;
 
 let lastWidth = 0;
 let lastHeight = 0;
@@ -69,12 +69,12 @@ window.onload = function () {
 
       // ----------------------------------------------------------------------------
 
-      if (showFPS) {
+      if (SHOW_FRAME_RATE) {
         const now = Date.now();
         const dt = now - lastFrameTime;
         lastFrameTime = now;
         const fps = 1000 / dt;
-        ctx.fillStyle = fps > fpsThreshold ? 'green' : 'red';
+        ctx.fillStyle = fps > FPS_THRESHOLD ? 'green' : 'red';
         ctx.fillRect(0, visualization.height - 52, 132, 52);
 
         ctx.fillStyle = 'white';

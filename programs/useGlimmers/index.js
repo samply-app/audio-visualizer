@@ -54,7 +54,7 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
   function trigger() {
     for(let i = 0; i < glimmers.length; i++) {
       const glimmer = glimmers[i];
-      const delayFactor = 0.1;
+      const delayFactor = lerp(0, 1, tOscilator8x);
       glimmer.trigger(i * delayFactor);
     }
   }
