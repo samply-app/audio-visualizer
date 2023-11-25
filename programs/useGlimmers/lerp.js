@@ -11,6 +11,14 @@
     return a + (b - a) * t;
   }
 
+  export function lerpColor(colorA, colorB, t) {
+    const r = lerp(colorA.r, colorB.r, t);
+    const g = lerp(colorA.g, colorB.g, t);
+    const b = lerp(colorA.b, colorB.b, t);
+    const a = lerp(colorA.a, colorB.a, t);
+    return { r, g, b, a };
+  }
+
   export function ease(t) {
     return t * t * t * t * t;
   }

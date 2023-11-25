@@ -1,5 +1,5 @@
 import createGlimmer from "./createGlimmer.js";
-import lerp from './lerp.js';
+import lerp, { lerpColor } from './lerp.js';
 import useTransientDetector from "./useTransientDetector.js";
 import useFrequencyUtils from "./useFrequencyUtils.js";
 
@@ -14,11 +14,12 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
 
   const NUMBER_OF_GLIMMERS = 400;
 
-  const BG_COLOR_LOW = { r: 0, g: 0, b: 0, a: 1 };
+  const BG_COLOR_LOW = { r: 0, g: 2, b: 18, a: 1 };
   const BG_COLOR_HI = { r: 255, g: 43, b: 255, a: 1 };
 
   const GLIMMER_COLOR_LOW = { r: 6, g: 43, b: 65, a: 1 };
   const GLIMMER_COLOR_HIGH = { r: 186, g: 230, b: 253, a: 1 };
+  const GLIMMER_COLOR_GLOW = { r: 16, g: 23, b: 73, a: 0.2 };
 
   const backgroundSmoothingFactor = 0.9;
 
@@ -66,10 +67,11 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
     const highFrequencyEnergy = highFrequencies.reduce((acc, val) => acc + val, 0) / highFrequencies.length;
     const highFrequencyEnergyNormalized = highFrequencyEnergy / 255;
 
-    const HIGH_FREQUENCY_SMOOTHING_FACTOR = 0.9;
+    const HIGH_FREQUENCY_SMOOTHING_FACTOR = 0.5;
     highEnergy = highFrequencyEnergyNormalized * HIGH_FREQUENCY_SMOOTHING_FACTOR;
 
-    ctx.fillStyle = `rgba(${BG_COLOR_HI.r}, ${BG_COLOR_HI.g}, ${BG_COLOR_HI.b}, ${BG_COLOR_HI.a * highEnergy})`;
+    const bg = lerpColor(BG_COLOR_LOW, BG_COLOR_HI, highEnergy);
+    ctx.fillStyle = `rgba(${bg.r}, ${bg.g}, ${bg.b}, ${bg.a})`;
     ctx.fillRect(0, 0, width, height);
 
     // Draw glows
@@ -85,6 +87,7 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
       const alpha = lerp(1, 0, tDistance); // Vignette
       glimmer.setColorLow({ ...GLIMMER_COLOR_LOW, a: alpha });
       glimmer.setColorHigh({ ...GLIMMER_COLOR_HIGH, a: alpha });
+      glimmer.setColorGlow(GLIMMER_COLOR_GLOW)
       
       glimmer.drawGlow(ctx);
     }

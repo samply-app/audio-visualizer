@@ -5,6 +5,7 @@ export default function createGlimmer() {
   let lifetime = 50;
   let colorLow = { r: 0, g: 0, b: 0, a: 0 };
   let colorHigh = { r: 0, g: 0, b: 0, a: 0 };
+  let colorGlow = { r: 0, g: 0, b: 0, a: 0 };
   
   const triggerQueue = []; // List of times to trigger (frames)
   
@@ -29,6 +30,10 @@ export default function createGlimmer() {
 
   function setColorHigh(_colorHigh) {
     colorHigh = _colorHigh;
+  }
+
+  function setColorGlow(_colorGlow) {
+    colorGlow = _colorGlow;
   }
 
 
@@ -78,9 +83,9 @@ export default function createGlimmer() {
 
   function drawGlow(ctx) {
     const p = t;
-    const glowColorInner = `rgba(${colorLow.r}, ${colorLow.g}, ${colorLow.b}, ${0.1})`;
-    const glowColorOuter = `rgba(${colorLow.r}, ${colorLow.g}, ${colorLow.b}, ${0})`;
-    const glowRadius = 256;
+    const glowColorInner = `rgba(${colorGlow.r}, ${colorGlow.g}, ${colorGlow.b}, ${colorGlow.a})`;
+    const glowColorOuter = `rgba(${colorGlow.r}, ${colorGlow.g}, ${colorGlow.b}, ${0})`;
+    const glowRadius = 210;
 
     const gradient = ctx.createRadialGradient(x, y, 0, x, y, lerp(0, glowRadius, p));
     gradient.addColorStop(0, glowColorInner);
@@ -106,5 +111,6 @@ export default function createGlimmer() {
     drawSpecular,
     setColorLow,
     setColorHigh,
+    setColorGlow
   }
 }
