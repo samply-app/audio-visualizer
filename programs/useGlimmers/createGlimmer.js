@@ -2,7 +2,7 @@ import lerp, { ease, easeInOutQuadratic, parabola } from './lerp.js';
 
 export default function createGlimmer() {
     
-  let lifetime = 0;
+  let lifetime = 400;
   let colorLow = { r: 0, g: 0, b: 0, a: 0 };
   let colorHigh = { r: 0, g: 0, b: 0, a: 0 };
   
@@ -36,8 +36,8 @@ export default function createGlimmer() {
   }
 
 
-  function update() {
-    if(time !== lifetime) {
+  function update() {    
+    if(time < lifetime) {
       time += 1;
     }
     t = (lifetime - time) / lifetime;
