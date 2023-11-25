@@ -1,5 +1,5 @@
 import createGlimmer from "./createGlimmer.js";
-import lerp, { lerpColor } from './lerp.js';
+import lerp, { lerpColor, ease } from './lerp.js';
 import useTransientDetector from "./useTransientDetector.js";
 import useFrequencyUtils from "./useFrequencyUtils.js";
 
@@ -15,13 +15,13 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
   const NUMBER_OF_GLIMMERS = 400;
 
   const BG_COLOR_LOW = { r: 0, g: 2, b: 18, a: 1 };
-  const BG_COLOR_HI = { r: 255, g: 43, b: 255, a: 1 };
+  const BG_COLOR_HI = { r: 54, g: 3, b: 161, a: 1 };
 
   const GLIMMER_COLOR_LOW = { r: 6, g: 43, b: 65, a: 1 };
   const GLIMMER_COLOR_HIGH = { r: 186, g: 230, b: 253, a: 1 };
   const GLIMMER_COLOR_GLOW = { r: 16, g: 23, b: 73, a: 0.2 };
 
-  const backgroundSmoothingFactor = 0.9;
+  const HIGH_FREQUENCY_SMOOTHING_FACTOR = 0.4;
 
   let lowEnergy = 0; // 0 - 1
   let midEnergy = 0;
@@ -49,27 +49,24 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
   function trigger() {
     for(let i = 0; i < glimmers.length; i++) {
       const glimmer = glimmers[i];
-      const delayFactor = 0.25;
+      const delayFactor = 0.1;
       glimmer.trigger(i * delayFactor);
     }
   }
 
   function drawFrame(ctx, width, height, frequencyData) {
+    const origin = { x: (width / 2) + offsetX, y: (height / 2) + offsetY };  
 
     // Detect transients and trigger animations
     const lowTransient = transientDetectorLow.detect(frequencyUtils.getRange(frequencyData, 0, 100));
     if(lowTransient) trigger();
-
-    const origin = { x: (width / 2) + offsetX, y: (height / 2) + offsetY };
-
-    // Draw background
+  
     const highFrequencies = frequencyUtils.getRange(frequencyData, 5000, 20000);
     const highFrequencyEnergy = highFrequencies.reduce((acc, val) => acc + val, 0) / highFrequencies.length;
-    const highFrequencyEnergyNormalized = highFrequencyEnergy / 255;
+    const highFrequencyEnergyNormalized = highFrequencyEnergy / 255;    
+    highEnergy = highFrequencyEnergyNormalized * HIGH_FREQUENCY_SMOOTHING_FACTOR;    
 
-    const HIGH_FREQUENCY_SMOOTHING_FACTOR = 0.5;
-    highEnergy = highFrequencyEnergyNormalized * HIGH_FREQUENCY_SMOOTHING_FACTOR;
-
+    // Draw background
     const bg = lerpColor(BG_COLOR_LOW, BG_COLOR_HI, highEnergy);
     ctx.fillStyle = `rgba(${bg.r}, ${bg.g}, ${bg.b}, ${bg.a})`;
     ctx.fillRect(0, 0, width, height);
