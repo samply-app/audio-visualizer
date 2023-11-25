@@ -1,8 +1,10 @@
 import lerp, { ease, easeInOutQuadratic, parabola } from './lerp.js';
 
-export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, colorHigh = { r: 0, g: 0, b: 255, a: 1 } ) {
+export default function createGlimmer() {
     
-  const lifetime = 50; // frames
+  let lifetime = 0;
+  let colorLow = { r: 0, g: 0, b: 0, a: 0 };
+  let colorHigh = { r: 0, g: 0, b: 0, a: 0 };
   
   const triggerQueue = []; // List of times to trigger (frames)
   
@@ -21,10 +23,23 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
     time = 0;
   }
 
+  function setLifetime(_lifetime) {
+    lifetime = _lifetime;
+  }
+
+  function setColorLow(_colorLow) {
+    colorLow = _colorLow;
+  }
+
+  function setColorHigh(_colorHigh) {
+    colorHigh = _colorHigh;
+  }
+
+
   function update() {
     if(time !== lifetime) {
       time += 1;
-    }    
+    }
     t = (lifetime - time) / lifetime;
 
     // Update trigger queue
@@ -49,13 +64,13 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
   }
 
   function drawSpecular(ctx) { 
-    const p = t;
+    const p = ease(t);
     const radius = 4;
 
     const r = Math.round(lerp(colorLow.r, colorHigh.r, p));
     const g = Math.round(lerp(colorLow.g, colorHigh.g, p));
     const b = Math.round(lerp(colorLow.b, colorHigh.b, p));
-    const a = lerp(colorLow.a, colorHigh.a, p);
+    const a = lerp(colorLow.a, colorHigh.a, p).toFixed(2);
     const glintColor = `rgba(${r}, ${g}, ${b}, ${a})`;
 
     ctx.fillStyle = glintColor;
@@ -93,5 +108,8 @@ export default function createGlimmer(colorLow = { r: 255, g: 0, b: 0, a: 1 }, c
     draw,
     drawGlow,
     drawSpecular,
+    setLifetime,
+    setColorLow,
+    setColorHigh,
   }
 }

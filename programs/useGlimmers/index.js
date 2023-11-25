@@ -4,26 +4,33 @@ import useTransientDetector from "./useTransientDetector.js";
 import useFrequencyUtils from "./useFrequencyUtils.js";
 
 export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
+  const frequencyUtils = useFrequencyUtils(sampleRate);
   const transientDetectorLow = useTransientDetector(1.5, 0.9, 0.99);
   const transientDetectorMid = useTransientDetector(4, 0.5, 0.99);
   const transientDetectorHigh = useTransientDetector(1.5, 0.9, 0.99);
+  
+  let time = 0; // time since first update (frames)
+  
 
-  const frequencyUtils = useFrequencyUtils(sampleRate);
+  const NUMBER_OF_GLIMMERS = 400;
 
-  let time = 0;
-  const glimmers = [];
+  const BG_COLOR_LOW = { r: 0, g: 0, b: 0, a: 1 };
+  const BG_COLOR_HI = { r: 6, g: 43, b: 65, a: 1 };
 
-  const numberOfGlimmers = 400;
+  const GLIMMER_LIFETIME = 400; // frames
+  const GLIMMER_COLOR_LOW = { r: 6, g: 43, b: 65, a: 1 };
+  const GLIMMER_COLOR_HIGH = { r: 186, g: 230, b: 253, a: 1 };
 
-  const backgroundColor = { r: 6, g: 43, b: 65, a: 0.5 };
   const backgroundSmoothingFactor = 0.9;
+  
   let backgroundAmplitude = 0;
 
   // Initialize glimmers
-  for(let i = 0; i < numberOfGlimmers; i++) {
-    const startColor = { r: 6, g: 43, b: 65, a: 0 }
-    const endColor = { r: 186, g: 230, b: 253, a: lerp(1, 0.5, i / numberOfGlimmers)  }
-    glimmers.push(createGlimmer(startColor, endColor));
+  const glimmers = [];  
+  for(let i = 0; i < NUMBER_OF_GLIMMERS; i++) {
+    
+    const glimmer = createGlimmer();    
+    glimmers.push(glimmer);
   }
 
   function getPosition(index) {
@@ -44,7 +51,7 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
     }
   }
 
-  function drawFrame(ctx, width, height, frequencyData) {   
+  function drawFrame(ctx, width, height, frequencyData) {
 
     // Detect transients and trigger animations
     const lowTransient = transientDetectorLow.detect(frequencyUtils.getRange(frequencyData, 0, 100));
@@ -56,22 +63,31 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
     const highFrequencies = frequencyUtils.getRange(frequencyData, 1000, 20000);
     const highFrequencyEnergy = highFrequencies.reduce((acc, val) => acc + val, 0) / highFrequencies.length;
     backgroundAmplitude = backgroundAmplitude * backgroundSmoothingFactor + (highFrequencyEnergy / 255) * (1 - backgroundSmoothingFactor);
-    ctx.fillStyle = `rgba(${backgroundColor.r}, ${backgroundColor.g}, ${backgroundColor.b}, ${backgroundColor.a * backgroundAmplitude})`;
+    ctx.fillStyle = `rgba(${BG_COLOR_HI.r}, ${BG_COLOR_HI.g}, ${BG_COLOR_HI.b}, ${BG_COLOR_HI.a * backgroundAmplitude})`;
     ctx.fillRect(0, 0, width, height);
 
     // Draw glows
     for(let i = 0; i < glimmers.length; i++) {
+      
       const glimmer = glimmers[i];
-      const { x: xFib, y: yFib } = getPosition(i);
+      
+      const { x: xFib, y: yFib } = getPosition(i);      
+      const distanceFromOrigin = Math.sqrt(xFib * xFib + yFib * yFib);
+      const tDistance = Math.min(distanceFromOrigin / (width / 2), 1); // 0 - 1
+      
       glimmer.setPosition(origin.x + xFib, origin.y + yFib);
+      glimmer.setLifetime(GLIMMER_LIFETIME);
+           
+      const alpha = lerp(1, 0.5, tDistance); // Vignette
+      glimmer.setColorLow({ ...GLIMMER_COLOR_LOW, a: alpha });
+      glimmer.setColorHigh({ ...GLIMMER_COLOR_HIGH, a: alpha });
+      
       glimmer.drawGlow(ctx);
     }
 
     // Draw speculars
     for(let i = 0; i < glimmers.length; i++) {
       const glimmer = glimmers[i];
-      const { x: xFib, y: yFib } = getPosition(i);
-      glimmer.setPosition(origin.x + xFib, origin.y + yFib);
       glimmer.drawSpecular(ctx);
       glimmer.update(); // Only update once
     }
