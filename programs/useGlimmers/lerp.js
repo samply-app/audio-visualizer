@@ -34,3 +34,7 @@
   export function parabola(t) {
     return Math.pow(4 * t * (1 - t), 0.5);
   }
+
+  export function triangle(t) {
+    return Math.abs(1 - (t % 2) * 2);
+  }

@@ -1,4 +1,4 @@
-export default function useTransientDetector(threshold = 1.5, smoothingFactor = 0.9, peakDecayFactor = 0.9) {
+export default function useTransientDetector(threshold = 1.5, smoothingFactor = 0.9, peakDecayFactor = 0.9, gate=200) {
   let smoothedAmplitude = 0;
   let peakAmplitude = 0;
 
@@ -9,6 +9,7 @@ export default function useTransientDetector(threshold = 1.5, smoothingFactor = 
   */
   function detect(frequencyData) {
     const amplitude = frequencyData.reduce((acc, val) => acc + val, 0) / frequencyData.length;
+    if(amplitude < gate) return false;
     smoothedAmplitude = smoothedAmplitude * smoothingFactor + amplitude * (1 - smoothingFactor);
 
     if(smoothedAmplitude > threshold * peakAmplitude) {

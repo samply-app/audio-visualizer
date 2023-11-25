@@ -1,5 +1,5 @@
 import createGlimmer from "./createGlimmer.js";
-import lerp, { lerpColor, ease } from './lerp.js';
+import lerp, { lerpColor, triangle } from './lerp.js';
 import useTransientDetector from "./useTransientDetector.js";
 import useFrequencyUtils from "./useFrequencyUtils.js";
 
@@ -10,7 +10,6 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
   const transientDetectorHigh = useTransientDetector(1.5, 0.9, 0.99);
   
   let time = 0; // time since first update (frames)
-  
 
   const NUMBER_OF_GLIMMERS = 400;
 
@@ -21,11 +20,18 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
   const GLIMMER_COLOR_HIGH = { r: 186, g: 230, b: 253, a: 1 };
   const GLIMMER_COLOR_GLOW = { r: 16, g: 23, b: 73, a: 0.2 };
 
+  const OSCILATOR_PERIOD = 1000; // frames (1 second = 60 frames)
+  let tOscilator = 0;
+  let tOscilator2x = 0;
+  let tOscilator4x = 0;
+  let tOscilator8x = 0;
+  let tOscilator16x = 0;
+
   const HIGH_FREQUENCY_SMOOTHING_FACTOR = 0.4;
 
   let lowEnergy = 0; // 0 - 1
   let midEnergy = 0;
-  let highEnergy = 0;
+  let tHighEnergy = 0;
 
 
   // Initialize glimmers
@@ -37,9 +43,8 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
   }
 
   function getPosition(index) {
-    const t = Math.min(time / 10000, 1);    
-    const angle = index / lerp(0.8, 0.99, t);
-    const distance = 5;
+    const angle = index / lerp(0.1, 0.101, tOscilator16x);
+    const distance = lerp(3, 6, tOscilator8x);
     const x = Math.cos(angle) * index * distance;
     const y = Math.sin(angle) * index * distance;
     return { x, y };
@@ -64,10 +69,10 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
     const highFrequencies = frequencyUtils.getRange(frequencyData, 5000, 20000);
     const highFrequencyEnergy = highFrequencies.reduce((acc, val) => acc + val, 0) / highFrequencies.length;
     const highFrequencyEnergyNormalized = highFrequencyEnergy / 255;    
-    highEnergy = highFrequencyEnergyNormalized * HIGH_FREQUENCY_SMOOTHING_FACTOR;    
+    tHighEnergy = highFrequencyEnergyNormalized * HIGH_FREQUENCY_SMOOTHING_FACTOR;    
 
     // Draw background
-    const bg = lerpColor(BG_COLOR_LOW, BG_COLOR_HI, highEnergy);
+    const bg = lerpColor(BG_COLOR_LOW, BG_COLOR_HI, tHighEnergy);
     ctx.fillStyle = `rgba(${bg.r}, ${bg.g}, ${bg.b}, ${bg.a})`;
     ctx.fillRect(0, 0, width, height);
 
@@ -97,6 +102,15 @@ export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
     }
 
     time += 1;
+
+    function getOscilatorValue(period) {
+      return triangle((time % period) / period);
+    }
+    tOscilator = getOscilatorValue(OSCILATOR_PERIOD);
+    tOscilator2x = getOscilatorValue(OSCILATOR_PERIOD * 2);
+    tOscilator4x = getOscilatorValue(OSCILATOR_PERIOD * 4);
+    tOscilator8x = getOscilatorValue(OSCILATOR_PERIOD * 8);
+    tOscilator16x = getOscilatorValue(OSCILATOR_PERIOD * 16);
   };
   
   return {
