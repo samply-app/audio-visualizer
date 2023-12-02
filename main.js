@@ -4,27 +4,13 @@ import useTestChart from './programs/useTestChart.js';
 import useTransientDetector from './programs/useGlimmers/useTransientDetector.js';
 import useFrequencyUtils from './programs/useGlimmers/useFrequencyUtils.js';
 
-const SHOW_FRAME_RATE = false;
+// Options
+const SHOW_FRAME_RATE = false; // enable while developing to see if your program is efficient enough
+
+// Constants
 const FPS_THRESHOLD = 40;
 
-let lastWidth = 0;
-let lastHeight = 0;
-
-function updateCanvasContext(context) {
-  const canvas = context.canvas;
-  const newWidth = canvas.clientWidth * devicePixelRatio;
-  const newHeight = canvas.clientHeight * devicePixelRatio;
-  if (lastWidth !== newWidth || lastHeight !== newHeight) {
-    canvas.width = newWidth;
-    canvas.height = newHeight;
-    lastWidth = newWidth;
-    lastHeight = newHeight;
-  }
-  return canvas;
-}
-
 window.onload = function () {
-  // Get elements
   var audioInput = document.getElementById('audioInput');
   var startButton = document.getElementById('startButton');
   var visualization = document.getElementById('visualization');
@@ -34,40 +20,56 @@ window.onload = function () {
   var analyser = audioContext.createAnalyser();
   analyser.fftSize = 256; // You can adjust this value to change the frequency resolution
 
-  // Create canvas context for visualization
   var ctx = visualization.getContext('2d');
   const devicePixelRatio = window.devicePixelRatio || 1;
   ctx.scale(devicePixelRatio, devicePixelRatio);
 
-  // Connect analyzer to audio context destination
   analyser.connect(audioContext.destination);
 
+  // ***** Initialize Programs Here *****
   const glimmers = useGlimmers(0, 0, audioContext.sampleRate);
-  const histogram = useHistogram();
+  const histogram = useHistogram(); 
   const testChart = useTestChart();
-
+  // ************************************
+  
   document.addEventListener('click', () => {
     glimmers.trigger();
   })
 
-  // Visualization function
   function visualize() {
+
+    let lastWidth = 0;
+    let lastHeight = 0;
+    let lastFrameTime = Date.now();
+
+    function updateCanvasContext(context) {
+      const canvas = context.canvas;
+      const newWidth = canvas.clientWidth * devicePixelRatio;
+      const newHeight = canvas.clientHeight * devicePixelRatio;
+      if (lastWidth !== newWidth || lastHeight !== newHeight) {
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        lastWidth = newWidth;
+        lastHeight = newHeight;
+      }
+      return canvas;
+    }
+
     var bufferLength = analyser.frequencyBinCount;
     var frequencyData = new Uint8Array(bufferLength);
-
-    let lastFrameTime = Date.now();
 
     function render() {
       analyser.getByteFrequencyData(frequencyData);
       updateCanvasContext(ctx);
       ctx.clearRect(0, 0, visualization.width, visualization.height);
 
-      // PLACE VISUALIZATION CODE HERE ----------------------------------------------
+      // ******** Render Program Frames Here **********
 
       glimmers.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
       // histogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+      // testChart.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
 
-      // ----------------------------------------------------------------------------
+      // **********************************************
 
       if (SHOW_FRAME_RATE) {
         const now = Date.now();
