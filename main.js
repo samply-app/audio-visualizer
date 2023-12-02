@@ -1,7 +1,7 @@
 import useGlimmers from './programs/useGlimmers/index.js';
 import useHistogram from './programs/useHistogram.js';
 import useTestChart from './programs/useTestChart.js';
-import useTransientDetector from './programs/useGlimmers/useTransientDetector.js';
+import useTransientDetector from './utils/useTransientDetector.js';
 import useFrequencyUtils from './utils/useFrequency.js';
 
 // Options
