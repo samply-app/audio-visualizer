@@ -1,7 +1,7 @@
 import createGlimmer from "./createGlimmer.js";
 import lerp, { lerpColor, triangle } from '../../utils/lerp.js';
 import useTransientDetector from "./useTransientDetector.js";
-import useFrequencyUtils from "./useFrequencyUtils.js";
+import useFrequencyUtils from "../../utils/useFrequency.js";
 
 export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
   const frequencyUtils = useFrequencyUtils(sampleRate);

@@ -2,7 +2,7 @@ import useGlimmers from './programs/useGlimmers/index.js';
 import useHistogram from './programs/useHistogram.js';
 import useTestChart from './programs/useTestChart.js';
 import useTransientDetector from './programs/useGlimmers/useTransientDetector.js';
-import useFrequencyUtils from './programs/useGlimmers/useFrequencyUtils.js';
+import useFrequencyUtils from './utils/useFrequency.js';
 
 // Options
 const SHOW_FRAME_RATE = false; // enable while developing to see if your program is efficient enough
