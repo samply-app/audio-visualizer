@@ -11,6 +11,30 @@ canvas {
   display: none;
 }
 
+#startButton {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -50px;
+  margin-left: -50px;
+  padding: 32px 24px;
+  background: #000212;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  color: #fff;
+  font-size: 20px;
+  font-family: sans-serif;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 4;
+}
+
+.hidden {
+  display: none;
+
+}
+
 body {
   background: #000212;
 }

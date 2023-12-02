@@ -27,14 +27,12 @@ window.onload = function () {
   analyser.connect(audioContext.destination);
 
   // ***** Initialize Programs Here *****
-  const glimmers = useGlimmers(0, 0, audioContext.sampleRate);
-  const histogram = useHistogram(); 
-  const testChart = useTestChart();
-  // ************************************
   
-  document.addEventListener('click', () => {
-    glimmers.trigger();
-  })
+  const glimmers = useGlimmers(0, 0, audioContext.sampleRate);
+  // const histogram = useHistogram(); 
+  // const testChart = useTestChart();
+  
+  // ************************************
 
   function visualize() {
 
@@ -107,9 +105,11 @@ window.onload = function () {
   });
 
 
-  startButton.addEventListener('click', function () {
+  startButton.addEventListener('click', function (e) {
+    e.stopPropagation();
     audioContext.resume().then(function () {
       audioInput.click(); // Trigger file input click programmatically
+      startButton.classList.add('hidden'); // Hide after file input is triggered
     });
   });
 
