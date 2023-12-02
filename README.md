@@ -1,6 +1,6 @@
 # Audio Visualizer
 This is a pure-Javascript "framework" that helps you create audio visualizer programs.
-At the end of the day, all it's doing is hooking up an audio file to a WebAudio graph, and passing data into an animation loop each frame. It's up to you as the program writing to use this data and draw something interesting to the canvas based on the realtime audio data.
+At the end of the day, all it's doing is hooking up an audio file to a WebAudio graph, and passing data into an animation loop each frame. It's up to you as the programmer to use this data and draw something interesting to the canvas based on the realtime audio data.
 
 ## Getting Started
 ### Development setup
