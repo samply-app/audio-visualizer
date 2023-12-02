@@ -1,10 +1,10 @@
-// Lerping is cool: https://youtu.be/YJB1QnEmlTs?si=g8Wz_LmLqZ4hZW1_
+// Learn more about linear interpolation: https://youtu.be/YJB1QnEmlTs?si=g8Wz_LmLqZ4hZW1_
 
 /**
    * Linearly interpolate between two values
-   * @param {*} a 
-   * @param {*} b 
-   * @param {*} t 
+   * @param {*} a starting value
+   * @param {*} b ending value
+   * @param {*} t interpolation value between 0 and 1
    * @returns 
    */
   export default function lerp(a, b, t) {

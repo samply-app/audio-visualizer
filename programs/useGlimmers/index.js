@@ -1,5 +1,5 @@
 import createGlimmer from "./createGlimmer.js";
-import lerp, { lerpColor, triangle } from './lerp.js';
+import lerp, { lerpColor, triangle } from '../../utils/lerp.js';
 import useTransientDetector from "./useTransientDetector.js";
 import useFrequencyUtils from "./useFrequencyUtils.js";
 

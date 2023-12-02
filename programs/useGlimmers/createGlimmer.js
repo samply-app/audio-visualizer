@@ -1,4 +1,4 @@
-import lerp, { ease, easeInOutQuadratic, parabola } from './lerp.js';
+import lerp, { ease, easeInOutQuadratic, parabola } from '../../utils/lerp.js';
 
 export default function createGlimmer() {
     
