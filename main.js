@@ -10,8 +10,28 @@ const SHOW_FRAME_RATE = false; // enable while developing to see if your program
 // Constants
 const FPS_THRESHOLD = 40;
 
+function getQueryParam(name) {
+  var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+  if (results == null) {
+      return null;
+  }
+  return decodeURI(results[1]) || 0;
+}
+
+function updateQueryParam() {
+  var program = document.getElementById("program").value;
+  var url = window.location.protocol + "//" + window.location.host + window.location.pathname + '?program=' + program;
+  window.history.pushState({path:url},'',url);
+}
+
 window.onload = function () {
+  var program = getQueryParam('program');
+  if (program) {
+      document.getElementById("program").value = program;
+  }
+
   var audioInput = document.getElementById('audioInput');
+  var programSelect = document.getElementById('program');
   var visualization = document.getElementById('visualization');
 
   // Create audio context and analyzer node
@@ -101,6 +121,10 @@ window.onload = function () {
       });
     };
     reader.readAsArrayBuffer(file);
+  });
+
+  programSelect.addEventListener('change', function (e) {
+    updateQueryParam();
   });
 
   visualize();
