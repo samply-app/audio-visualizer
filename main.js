@@ -12,7 +12,6 @@ const FPS_THRESHOLD = 40;
 
 window.onload = function () {
   var audioInput = document.getElementById('audioInput');
-  var startButton = document.getElementById('startButton');
   var visualization = document.getElementById('visualization');
 
   // Create audio context and analyzer node
@@ -29,8 +28,8 @@ window.onload = function () {
   // ***** Initialize Programs Here *****
   
   const glimmers = useGlimmers(0, 0, audioContext.sampleRate);
-  // const histogram = useHistogram(); 
-  // const testChart = useTestChart();
+  const histogram = useHistogram(); 
+  const testChart = useTestChart();
   
   // ************************************
 
@@ -63,9 +62,9 @@ window.onload = function () {
 
       // ******** Render Program Frames Here **********
 
-      glimmers.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
-      // histogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
-      // testChart.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+      // glimmers.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+      histogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+      testChart.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
 
       // **********************************************
 
@@ -102,15 +101,6 @@ window.onload = function () {
       });
     };
     reader.readAsArrayBuffer(file);
-  });
-
-
-  startButton.addEventListener('click', function (e) {
-    e.stopPropagation();
-    audioContext.resume().then(function () {
-      audioInput.click(); // Trigger file input click programmatically
-      startButton.classList.add('hidden'); // Hide after file input is triggered
-    });
   });
 
   visualize();
