@@ -52,10 +52,10 @@ export default function useTransientParty() {
       highCircle.trigger();
     }
 
-    bigCircle.draw(ctx, width / 2, height / 2, minDimension / 2);
-    lowCircle.draw(ctx, 0, height / 2, minDimension / 6);
-    midCircle.draw(ctx, width / 2, height / 2, minDimension / 6);
-    highCircle.draw(ctx, width, height / 2, minDimension / 6);
+    bigCircle.drawFrame(ctx, width / 2, height / 2, minDimension / 2);
+    lowCircle.drawFrame(ctx, 0, height / 2, minDimension / 6);
+    midCircle.drawFrame(ctx, width / 2, height / 2, minDimension / 6);
+    highCircle.drawFrame(ctx, width, height / 2, minDimension / 6);
   };
 
   return {
