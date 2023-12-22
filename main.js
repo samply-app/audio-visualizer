@@ -4,6 +4,7 @@ import useTestChart from './programs/useTestChart.js';
 import useFul from './programs/useFul.js';
 import useTransientDetector from './utils/useTransientDetector.js';
 import useFrequencyUtils from './utils/useFrequency.js';
+import useTransientParty from './programs/useTransientParty.js';
 
 // Options
 let showFrameRate = true; // enable while developing to see if your program is efficient enough
@@ -51,7 +52,11 @@ window.onload = function () {
   const glimmers = useGlimmers(0, 0, audioContext.sampleRate);
   const histogram = useHistogram(); 
   const testChart = useTestChart();
+<<<<<<< HEAD
   const ful = useFul();
+=======
+  const transientParty = useTransientParty();
+>>>>>>> main
   
   // ************************************
 
@@ -77,6 +82,8 @@ window.onload = function () {
     var bufferLength = analyser.frequencyBinCount;
     var frequencyData = new Uint8Array(bufferLength);
 
+    let time = 0;
+
     function render() {
       analyser.getByteFrequencyData(frequencyData);
       updateCanvasContext(ctx);
@@ -86,17 +93,20 @@ window.onload = function () {
 
       switch (program) {
         case 'glimmers':
-          glimmers.drawFrame(ctx, visualization.width, visualization.height, frequencyData);    
+          glimmers.drawFrame(ctx, visualization.width, visualization.height, frequencyData, time);    
           break;
         case 'histogram':
-          histogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+          histogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData, time);
+          break;
+        case 'transient-party':
+          transientParty.drawFrame(ctx, visualization.width, visualization.height, frequencyData, time);
           break;
         case 'ful':
           ful.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
           break;
         case 'test-chart':
         default:
-          testChart.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+          testChart.drawFrame(ctx, visualization.width, visualization.height, frequencyData, time);
           break;
       }
 
@@ -115,10 +125,11 @@ window.onload = function () {
         ctx.fillText(`FPS: ${Math.round(fps)}`, 16, visualization.height - 16);
       }
 
+      time += 1;
       requestAnimationFrame(render);
     }
 
-    render();    
+    render();  
   }
 
 
@@ -145,7 +156,6 @@ window.onload = function () {
 };
 
 window.addEventListener('keydown', function(event) {
-  console.log('ass');
   if (event.key === '.') {    
     const uiDiv = document.querySelector('.ui');
     uiDiv.classList.toggle('hidden');
