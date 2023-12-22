@@ -10,9 +10,12 @@
     <canvas id="visualization"></canvas>
     <div class="ui">
         <input type="file" id="audioInput" accept="audio/*">
+        <!-- Safari accept attribute is broken -->
+        <!-- <input type="file" id="audioInput">  -->
         <select id="program">
             <option value="test-chart">Test Chart</option>
             <option value="histogram">Histogram</option>
+            <option value="mel-histogram">Mel Histogram</option>
             <option value="glimmers">Glimmers</option>
             <option value="transient-party">Transient Party 🎉</option>
         </select>        

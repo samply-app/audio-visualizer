@@ -2,6 +2,10 @@ export default function useTransientDetector(threshold = 1.5, smoothingFactor = 
   let smoothedAmplitude = 0;
   let peakAmplitude = 0;
 
+  // 1) Calculate the average amplitude of the frequency data
+  // 2) Apply a noise gate to avoid false positives from noise
+  // 3) Smooth the amplitude with a moving average over two frames
+
  /**
   * Detect a transient in the frequency data
   * @param {*} frequencyData

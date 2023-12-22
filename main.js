@@ -1,5 +1,6 @@
 import useGlimmers from './programs/useGlimmers/index.js';
 import useHistogram from './programs/useHistogram.js';
+import useMelHistogram from './programs/useMelHistogram.js';
 import useTestChart from './programs/useTestChart.js';
 import useTransientDetector from './utils/useTransientDetector.js';
 import useFrequencyUtils from './utils/useFrequency.js';
@@ -38,7 +39,10 @@ window.onload = function () {
   // Create audio context and analyzer node
   var audioContext = new (window.AudioContext || window.webkitAudioContext)();
   var analyser = audioContext.createAnalyser();
-  analyser.fftSize = 256; // You can adjust this value to change the frequency resolution
+  analyser.fftSize = program === 'mel-histogram' ? 8192 : 256; // You can adjust this value to change the frequency resolution
+  // analyser.maxDecibels = -30 // default is -30
+  // analyser.minDecibels = -100 // default is -100
+  // analyser.smoothingTimeConstant = 0.8 // default is 0.8
 
   var ctx = visualization.getContext('2d');
   const devicePixelRatio = window.devicePixelRatio || 1;
@@ -48,8 +52,9 @@ window.onload = function () {
 
   // ***** Initialize Programs Here *****
   
-  const glimmers = useGlimmers(0, 0, audioContext.sampleRate);
-  const histogram = useHistogram(); 
+  const glimmers = useGlimmers(0, 0, audioContext.sampleRate, analyser.fftSize);
+  const histogram = useHistogram();
+  const melHistogram = useMelHistogram(audioContext.sampleRate, analyser.fftSize); 
   const testChart = useTestChart();
   const transientParty = useTransientParty();
   
@@ -95,6 +100,10 @@ window.onload = function () {
           break;
         case 'transient-party':
           transientParty.drawFrame(ctx, visualization.width, visualization.height, frequencyData, time);
+          break;
+        case 'mel-histogram':
+          analyser.fftSize = 2048 * 4; // Need high-res FFTs for mel filterbank to work at low frequencies
+          melHistogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
           break;
         case 'test-chart':
         default:

@@ -3,8 +3,8 @@ import lerp, { lerpColor, triangle } from '../../utils/lerp.js';
 import useTransientDetector from "../../utils/useTransientDetector.js";
 import useFrequencyUtils from "../../utils/useFrequency.js";
 
-export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate) {
-  const frequencyUtils = useFrequencyUtils(sampleRate);
+export default function useGlimmers(offsetX = 0, offsetY = 0, sampleRate, fftSize) {
+  const frequencyUtils = useFrequencyUtils(sampleRate, fftSize);
   const transientDetectorLow = useTransientDetector(1.5, 0.9, 0.99);
   const transientDetectorMid = useTransientDetector(4, 0.5, 0.99);
   const transientDetectorHigh = useTransientDetector(1.5, 0.9, 0.99);
