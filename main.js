@@ -1,6 +1,7 @@
 import useGlimmers from './programs/useGlimmers/index.js';
 import useHistogram from './programs/useHistogram.js';
 import useTestChart from './programs/useTestChart.js';
+import useFul from './programs/useFul.js';
 import useTransientDetector from './utils/useTransientDetector.js';
 import useFrequencyUtils from './utils/useFrequency.js';
 
@@ -50,6 +51,7 @@ window.onload = function () {
   const glimmers = useGlimmers(0, 0, audioContext.sampleRate);
   const histogram = useHistogram(); 
   const testChart = useTestChart();
+  const ful = useFul();
   
   // ************************************
 
@@ -88,6 +90,9 @@ window.onload = function () {
           break;
         case 'histogram':
           histogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+          break;
+        case 'ful':
+          ful.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
           break;
         case 'test-chart':
         default:
