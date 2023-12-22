@@ -5,7 +5,7 @@ import useTransientDetector from './utils/useTransientDetector.js';
 import useFrequencyUtils from './utils/useFrequency.js';
 
 // Options
-const SHOW_FRAME_RATE = false; // enable while developing to see if your program is efficient enough
+let showFrameRate = true; // enable while developing to see if your program is efficient enough
 
 // Constants
 const FPS_THRESHOLD = 40;
@@ -97,7 +97,7 @@ window.onload = function () {
 
       // **********************************************
 
-      if (SHOW_FRAME_RATE) {
+      if (showFrameRate) {
         const now = Date.now();
         const dt = now - lastFrameTime;
         lastFrameTime = now;
@@ -144,5 +144,6 @@ window.addEventListener('keydown', function(event) {
   if (event.key === '.') {    
     const uiDiv = document.querySelector('.ui');
     uiDiv.classList.toggle('hidden');
+    showFrameRate = !showFrameRate;
   }
 });
