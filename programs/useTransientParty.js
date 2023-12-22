@@ -13,16 +13,16 @@ export default function useTransientParty() {
    * @param {*} height 
    * @param {*} dataArray 
    */
-  function drawFrame(ctx, width, height, dataArray) {
+  function drawFrame(ctx, width, height, dataArray, time) {
 
     const lowNotch = 100; // Hz
     const midNotch = 1000; // Hz
     const highNotch = 5000; // Hz
 
-    const fullTransient = true; // transients.detect(dataArray);
-    const lowTransient = true; // transients.detect(frequencies.getRange(dataArray, 0, lowNotch));
-    const midTransient = true; // transients.detect(frequencies.getRange(dataArray, lowNotch, midNotch));
-    const highTransient = true; // transients.detect(frequencies.getRange(dataArray, midNotch, highNotch));
+    const fullTransient = time % 128 == 0; // transients.detect(dataArray);
+    const lowTransient = time % 64 == 0; // transients.detect(frequencies.getRange(dataArray, 0, lowNotch));
+    const midTransient = time % 32 == 0; // transients.detect(frequencies.getRange(dataArray, lowNotch, midNotch));
+    const highTransient = time % 16 == 0; // transients.detect(frequencies.getRange(dataArray, midNotch, highNotch));
 
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = 'rgba(255, 255, 0, 1)';
