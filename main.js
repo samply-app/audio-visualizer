@@ -145,7 +145,6 @@ window.onload = function () {
 };
 
 window.addEventListener('keydown', function(event) {
-  console.log('ass');
   if (event.key === '.') {    
     const uiDiv = document.querySelector('.ui');
     uiDiv.classList.toggle('hidden');
