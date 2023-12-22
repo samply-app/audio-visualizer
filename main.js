@@ -3,6 +3,7 @@ import useHistogram from './programs/useHistogram.js';
 import useTestChart from './programs/useTestChart.js';
 import useTransientDetector from './utils/useTransientDetector.js';
 import useFrequencyUtils from './utils/useFrequency.js';
+import useTransientParty from './programs/useTransientParty.js';
 
 // Options
 let showFrameRate = true; // enable while developing to see if your program is efficient enough
@@ -50,6 +51,7 @@ window.onload = function () {
   const glimmers = useGlimmers(0, 0, audioContext.sampleRate);
   const histogram = useHistogram(); 
   const testChart = useTestChart();
+  const transientParty = useTransientParty();
   
   // ************************************
 
@@ -88,6 +90,9 @@ window.onload = function () {
           break;
         case 'histogram':
           histogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+          break;
+        case 'transient-party':
+          transientParty.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
           break;
         case 'test-chart':
         default:
