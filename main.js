@@ -52,11 +52,8 @@ window.onload = function () {
   const glimmers = useGlimmers(0, 0, audioContext.sampleRate);
   const histogram = useHistogram(); 
   const testChart = useTestChart();
-<<<<<<< HEAD
   const ful = useFul();
-=======
   const transientParty = useTransientParty();
->>>>>>> main
   
   // ************************************
 
