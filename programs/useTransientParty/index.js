@@ -1,8 +1,15 @@
-import useTransientDetector from "../utils/useTransientDetector.js";
-import useFrequency from "../utils/useFrequency.js";
+
+import circle from "./circle.js";
+import useTransientDetector from "../../utils/useTransientDetector.js";
+import useFrequency from "../../utils/useFrequency.js";
 
 const transients = useTransientDetector();
 const frequencies = useFrequency();
+
+const bigCircle = circle();
+const lowCircle = circle();
+const midCircle = circle();
+const highCircle = circle();
 
 export default function useTransientParty() {
 
@@ -32,34 +39,23 @@ export default function useTransientParty() {
 
     const minDimension = Math.min(width, height);
     
-    if(fullTransient) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; // Set fill color to black
-      ctx.beginPath();
-      ctx.arc(width / 2, height / 2, minDimension / 2, 0, 2 * Math.PI); // Use a radius that is a fraction of the minimum dimension
-      ctx.fill();
+    if (fullTransient) {      
+      bigCircle.trigger();
+    }
+    if (lowTransient) {
+      lowCircle.trigger();
+    }
+    if (midTransient) {
+      midCircle.trigger();
+    }
+    if (highTransient) {
+      highCircle.trigger();
     }
 
-    if(lowTransient) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // Set fill color to black
-      ctx.beginPath();
-      ctx.arc(0, height / 2, minDimension / 6, 0, 2 * Math.PI);
-      ctx.fill();
-    }
-
-    if(midTransient) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // Set fill color to black
-      ctx.beginPath();
-      ctx.arc(width / 2, height / 2, minDimension / 6, 0, 2 * Math.PI);
-      ctx.fill();
-    }
-    
-    if(highTransient) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // Set fill color to black
-      ctx.beginPath();
-      ctx.arc(width, height / 2, minDimension / 6, 0, 2 * Math.PI);
-      ctx.fill();
-    }
-
+    bigCircle.draw(ctx, width / 2, height / 2, minDimension / 2);
+    lowCircle.draw(ctx, 0, height / 2, minDimension / 6);
+    midCircle.draw(ctx, width / 2, height / 2, minDimension / 6);
+    highCircle.draw(ctx, width, height / 2, minDimension / 6);
   };
 
   return {

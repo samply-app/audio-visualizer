@@ -3,7 +3,7 @@ import useHistogram from './programs/useHistogram.js';
 import useTestChart from './programs/useTestChart.js';
 import useTransientDetector from './utils/useTransientDetector.js';
 import useFrequencyUtils from './utils/useFrequency.js';
-import useTransientParty from './programs/useTransientParty.js';
+import useTransientParty from './programs/useTransientParty/index.js';
 
 // Options
 let showFrameRate = true; // enable while developing to see if your program is efficient enough
