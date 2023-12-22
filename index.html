@@ -7,15 +7,15 @@
     <title>Audio Analyzer</title>
 </head>
 <body>
+    <canvas id="visualization"></canvas>
     <div class="ui">
         <input type="file" id="audioInput" accept="audio/*">
         <select id="program">
-            <option value="program1">Program 1</option>
-            <option value="program2">Program 2</option>
-            <option value="program3">Program 3</option>
-        </select>
-        <canvas id="visualization"></canvas>
-    </div>
+            <option value="test-chart">Test Chart</option>
+            <option value="histogram">Histogram</option>
+            <option value="glimmers">Glimmers</option>
+        </select>        
+    </div>    
     <script type="module" src="/main.js"></script>
 </body>
 </html>

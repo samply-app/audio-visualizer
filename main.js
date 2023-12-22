@@ -82,9 +82,18 @@ window.onload = function () {
 
       // ******** Render Program Frames Here **********
 
-      // glimmers.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
-      histogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
-      testChart.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+      switch (program) {
+        case 'glimmers':
+          glimmers.drawFrame(ctx, visualization.width, visualization.height, frequencyData);    
+          break;
+        case 'histogram':
+          histogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+          break;
+        case 'test-chart':
+        default:
+          testChart.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+          break;
+      }
 
       // **********************************************
 

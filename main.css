@@ -8,8 +8,11 @@ canvas {
 }
 
 .ui {
+  position: absolute;
+  z-index: 1;
+  top: 64px;
+  width: 100%;
   text-align: center;
-  margin: 128px auto;
 }
 
 
