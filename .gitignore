@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+yarn.lock
+package-lock.json
+
+# Build outputs
+dist/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+yarn-debug.log*
+yarn-error.log*

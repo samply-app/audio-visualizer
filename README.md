@@ -3,7 +3,22 @@ This is a pure-Javascript "framework" that helps you create audio visualizer pro
 At the end of the day, all it's doing is hooking up an audio file to a WebAudio graph, and passing data into an animation loop each frame. It's up to you as the programmer to use this data and draw something interesting to the canvas based on the realtime audio data.
 
 ## Getting Started
+
 ### Development setup
+This project now uses [Vite](https://vitejs.dev/) for hot reloading and development. 
+
+**Quick start:**
+```bash
+# Install dependencies
+yarn install
+
+# Start development server with hot reload
+yarn dev
+```
+
+The development server will start on `http://localhost:3000` and automatically open in your browser. Any changes you make to your code will automatically reload the page.
+
+**Alternative setup:**
 [Visual Studio Code](https://code.visualstudio.com/) is an excellent text editor for javascript programs. It also has a [live-preview extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server) which allows for hot-reloading of your programs while developing. You can also just open the `index.html` file and manually refresh your page each time you make a change.
 
 ### Navigating the repository
