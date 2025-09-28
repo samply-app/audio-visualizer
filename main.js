@@ -1,6 +1,7 @@
 import useGlimmers from './programs/useGlimmers/index.js';
 import useHistogram from './programs/useHistogram.js';
 import useMelHistogram from './programs/useMelHistogram.js';
+import useWilly from './programs/useWilly.js';
 import useTestChart from './programs/useTestChart.js';
 import useTransientDetector from './utils/useTransientDetector.js';
 import useFrequencyUtils from './utils/useFrequency.js';
@@ -55,6 +56,7 @@ window.onload = function () {
   const glimmers = useGlimmers(0, 0, audioContext.sampleRate, analyser.fftSize);
   const histogram = useHistogram();
   const melHistogram = useMelHistogram(audioContext.sampleRate, analyser.fftSize); 
+  const willy = useWilly(audioContext.sampleRate, analyser.fftSize);
   const testChart = useTestChart();
   const transientParty = useTransientParty();
   
@@ -104,6 +106,9 @@ window.onload = function () {
         case 'mel-histogram':
           analyser.fftSize = 2048 * 4; // Need high-res FFTs for mel filterbank to work at low frequencies
           melHistogram.drawFrame(ctx, visualization.width, visualization.height, frequencyData);
+          break;
+        case 'willy':
+          willy.drawFrame(ctx, visualization.width, visualization.height, frequencyData, time);
           break;
         case 'test-chart':
         default:
